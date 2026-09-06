@@ -2,7 +2,10 @@
 <html lang="cs">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#43593F">
 <title>Kuchařka</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700;9..144,800&family=Karla:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -278,6 +281,7 @@
     border-radius: 6px;
   }
   .icon-btn:hover{ color: var(--ink); background: rgba(43,38,32,0.06); }
+  .icon-btn svg{ width: 18px; height: 18px; display: block; }
   .field{ margin-bottom: 17px; }
   .field label{ display:block; font-size: 12.5px; font-weight: 700; color: var(--ink-soft); margin-bottom: 6px; text-transform: uppercase; letter-spacing: .03em; }
   .field-row{ display:flex; gap: 14px; }
@@ -333,6 +337,9 @@
   .modal-actions{ display:flex; justify-content: space-between; align-items:center; margin-top: 24px; padding-top:18px; border-top: 1px dashed var(--line); }
   .modal-actions .left, .modal-actions .right{ display:flex; gap:10px; }
 
+  .wakelock-row{ margin-bottom: 20px; }
+  #btnWakeLock.active{ background: var(--primary); color: #fff; border-color: transparent; }
+
   footer{ max-width: 1000px; margin: 44px auto 0; padding: 0 24px; text-align:center; }
   footer button{ background:none; border:none; color: var(--ink-soft); font-size:12.5px; text-decoration:underline; cursor:pointer; }
   .data-actions{ display:flex; gap:10px; justify-content:center; flex-wrap:wrap; margin-bottom: 6px; }
@@ -376,7 +383,21 @@
 
   @media (max-width: 560px){
     header h1{ font-size: 32px; }
-    .modal-inner{ padding: 20px 18px 22px; }
+    header{ padding-top: calc(44px + env(safe-area-inset-top)); }
+    .modal-inner{ padding: 18px 16px 20px; }
+    .overlay{ padding: 0; align-items: flex-end; }
+    .modal{ max-height: 92vh; overflow-y: auto; border-radius: 16px 16px 0 0; width: 100%; max-width: 100%; }
+    input[type=text], input[type=number], input[type=url], textarea, select, .conv-row select{ font-size: 16px; }
+    .btn{ padding: 13px 20px; }
+    .chip{ padding: 9px 14px; }
+    .stars.lg .star{ width: 34px; height: 33px; }
+    .ing-row input[type=checkbox]{ width: 21px; height: 21px; }
+    .modal-actions{ flex-wrap: wrap; gap: 10px; }
+    .modal-actions .left, .modal-actions .right{ width: 100%; }
+    .modal-actions .right{ flex-direction: column-reverse; }
+    .modal-actions button{ width: 100%; text-align: center; }
+    body{ padding-bottom: calc(70px + env(safe-area-inset-bottom)); }
+    .view-tabs{ position: sticky; top: 0; background: var(--bg); z-index: 20; padding-top: 8px; }
   }
 </style>
 </head>
@@ -813,13 +834,26 @@ async function fetchHtml(url){
   try{
     const res = await fetch(url, { mode: 'cors' });
     if(res.ok) return await res.text();
-    throw new Error('bad response');
-  }catch(e){
-    const proxyUrl = 'https://api.allorigins.win/raw?url=' + encodeURIComponent(url);
-    const res2 = await fetch(proxyUrl);
-    if(!res2.ok) throw new Error('proxy failed');
-    return await res2.text();
+  }catch(e){ /* fall through to proxies */ }
+
+  const proxies = [
+    'https://api.allorigins.win/raw?url=' + encodeURIComponent(url),
+    'https://api.codetabs.com/v1/proxy?quest=' + encodeURIComponent(url),
+    'https://corsproxy.io/?url=' + encodeURIComponent(url),
+  ];
+  let lastErr;
+  for(const proxyUrl of proxies){
+    try{
+      const res = await fetch(proxyUrl);
+      if(res.ok){
+        const text = await res.text();
+        if(text && text.length > 200) return text;
+      }
+    }catch(e){
+      lastErr = e;
+    }
   }
+  throw new Error('všechny způsoby stažení selhaly' + (lastErr ? ': ' + lastErr.message : ''));
 }
 
 async function fetchRecipeFromUrl(rawUrl){
@@ -830,6 +864,66 @@ async function fetchRecipeFromUrl(rawUrl){
   if(structured && (structured.ingredients.length || structured.steps.length)) return structured;
   const plainText = stripTags(html);
   return heuristicParseText(plainText);
+}
+
+// ---------- inline unit conversion (for recipe text) ----------
+const CUP_DENSITY_KEYWORDS = [
+  { word: 'mouka', gramsPerCup: 120 }, { word: 'flour', gramsPerCup: 120 },
+  { word: 'cukr', gramsPerCup: 200 }, { word: 'sugar', gramsPerCup: 200 },
+  { word: 'maslo', gramsPerCup: 227 }, { word: 'butter', gramsPerCup: 227 },
+  { word: 'olej', gramsPerCup: 218 }, { word: 'oil', gramsPerCup: 218 },
+  { word: 'mleko', gramsPerCup: 240 }, { word: 'milk', gramsPerCup: 240 },
+  { word: 'voda', gramsPerCup: 236 }, { word: 'water', gramsPerCup: 236 },
+  { word: 'vlocky', gramsPerCup: 90 }, { word: 'oats', gramsPerCup: 90 },
+  { word: 'kakao', gramsPerCup: 84 }, { word: 'cocoa', gramsPerCup: 84 },
+  { word: 'med', gramsPerCup: 340 }, { word: 'honey', gramsPerCup: 340 },
+];
+
+function findCupDensity(tokens){
+  const stems = tokens.map(stem);
+  for(const entry of CUP_DENSITY_KEYWORDS){
+    if(stems.includes(stem(entry.word))) return entry.gramsPerCup;
+  }
+  return null;
+}
+
+function parseAmountStr(s){
+  s = s.trim();
+  const mixed = s.match(/^(\d+)\s+(\d+)\/(\d+)$/);
+  if(mixed) return parseInt(mixed[1],10) + parseInt(mixed[2],10) / parseInt(mixed[3],10);
+  const frac = s.match(/^(\d+)\/(\d+)$/);
+  if(frac) return parseInt(frac[1],10) / parseInt(frac[2],10);
+  return parseFloat(s.replace(',', '.')) || 0;
+}
+
+const AMOUNT_PATTERN = '(\\d+\\s+\\d+\\/\\d+|\\d+\\/\\d+|\\d+(?:[.,]\\d+)?)';
+const UNIT_RE = new RegExp(AMOUNT_PATTERN + '\\s*(cups?|šálk\\w*|tablespoons?|tbsp\\.?|teaspoons?|tsp\\.?|fl\\.?\\s?oz|fluid ounces?|pounds?|lbs?\\.?|ounces?|oz\\.?)\\b', 'gi');
+
+function convertLineUnits(line){
+  if(!line) return line;
+  const tokens = tokenize(line);
+  const density = findCupDensity(tokens);
+  let result = line.replace(UNIT_RE, (m, amtStr, unitStr) => {
+    const val = parseAmountStr(amtStr);
+    const u = unitStr.toLowerCase();
+    let ml = null, g = null;
+    if(/^cup/.test(u) || /^šálk/.test(u)){ ml = val * 236.588; if(density) g = ml / 236.588 * density; }
+    else if(/^tablespoon|^tbsp/.test(u)) ml = val * 14.787;
+    else if(/^teaspoon|^tsp/.test(u)) ml = val * 4.929;
+    else if(/^fl|^fluid/.test(u)) ml = val * 29.574;
+    else if(/^pound|^lb/.test(u)) g = val * 453.592;
+    else if(/^ounce|^oz/.test(u)) g = val * 28.3495;
+    if(g != null) return `${m} (≈${Math.round(g)} g)`;
+    if(ml != null) return `${m} (≈${Math.round(ml)} ml)`;
+    return m;
+  });
+  result = result.replace(/(\d+)\s*°?\s*F\b/g, (m, num) => {
+    const f = parseFloat(num);
+    if(f < 50 || f > 550) return m;
+    const c = Math.round((f - 32) * 5/9);
+    return `${m} (≈${c} °C)`;
+  });
+  return result;
 }
 
 // ---------- ingredient matching (declension-tolerant) ----------
@@ -1059,9 +1153,62 @@ function openEdit(id){
   renderModal();
 }
 
+// ---------- keep-screen-awake ----------
+let wakeLock = null;
+let wakeLockWanted = false;
+
+function updateWakeLockButton(){
+  const btn = document.getElementById('btnWakeLock');
+  if(!btn) return;
+  if(wakeLockWanted && wakeLock){
+    btn.textContent = '🔆 Obrazovka svítí (klepni pro vypnutí)';
+    btn.classList.add('active');
+  } else {
+    btn.textContent = '🔆 Nezhasínat obrazovku';
+    btn.classList.remove('active');
+  }
+}
+
+async function requestWakeLock(){
+  try{
+    wakeLock = await navigator.wakeLock.request('screen');
+    wakeLock.addEventListener('release', () => { wakeLock = null; updateWakeLockButton(); });
+  }catch(e){
+    console.error(e);
+  }
+  updateWakeLockButton();
+}
+
+async function toggleWakeLock(){
+  if(!('wakeLock' in navigator)){
+    alert('Tvůj prohlížeč bohužel funkci „nezhasínat obrazovku" nepodporuje.');
+    return;
+  }
+  if(wakeLockWanted){
+    wakeLockWanted = false;
+    if(wakeLock){ await wakeLock.release(); wakeLock = null; }
+    updateWakeLockButton();
+  } else {
+    wakeLockWanted = true;
+    await requestWakeLock();
+  }
+}
+
+function releaseWakeLockOnClose(){
+  wakeLockWanted = false;
+  if(wakeLock){ wakeLock.release().catch(() => {}); wakeLock = null; }
+}
+
+document.addEventListener('visibilitychange', () => {
+  if(wakeLockWanted && document.visibilityState === 'visible' && !wakeLock){
+    requestWakeLock();
+  }
+});
+
 function closeModal(){
   overlay.classList.remove('open');
   editingId = null;
+  releaseWakeLockOnClose();
 }
 
 function renderModal(){
@@ -1077,8 +1224,8 @@ function renderViewModal(r){
     <div class="modal-head">
       <h2>${escapeHtml(r.name)}</h2>
       <div style="display:flex; gap:4px;">
-        <button class="icon-btn" id="btnEdit" title="Upravit">✎</button>
-        <button class="icon-btn" id="btnDelete" title="Smazat">🗑</button>
+        <button class="icon-btn" id="btnEdit" title="Upravit"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg></button>
+        <button class="icon-btn" id="btnDelete" title="Smazat"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/></svg></button>
         <button class="icon-btn" id="btnClose" title="Zavřít">✕</button>
       </div>
     </div>
@@ -1098,6 +1245,10 @@ function renderViewModal(r){
         <button type="button" id="btnResetChecks">zrušit zaškrtnutí</button>
       </div>
       <ul class="ing-list" id="ingList"></ul>
+    </div>
+
+    <div class="wakelock-row">
+      <button type="button" class="btn btn-ghost" id="btnWakeLock">🔆 Nezhasínat obrazovku</button>
     </div>
 
     <div class="view-block">
@@ -1142,6 +1293,9 @@ function renderViewModal(r){
     saveRecipes();
     drawIngList();
   };
+
+  document.getElementById('btnWakeLock').onclick = toggleWakeLock;
+  updateWakeLockButton();
 
   document.getElementById('viewNote').addEventListener('change', (e) => {
     r.note = e.target.value;
@@ -1205,6 +1359,11 @@ function renderEditForm(r){
     <div class="field">
       <button type="button" class="btn btn-ghost" id="btnTranslateNow">Přeložit název, suroviny a postup do češtiny</button>
       <div class="url-status" id="translateStatus"></div>
+    </div>
+
+    <div class="field">
+      <button type="button" class="btn btn-ghost" id="btnConvertUnits">🔄 Doplnit metrické jednotky (g/ml/°C)</button>
+      <div class="url-status" id="convertStatus"></div>
     </div>
 
     <div class="field">
@@ -1299,8 +1458,8 @@ function renderEditForm(r){
   function applyFetchedData(data){
     if(data.name) document.getElementById('fName').value = data.name;
     if(data.time) document.getElementById('fTime').value = data.time;
-    if(data.ingredients && data.ingredients.length) document.getElementById('fIngredients').value = data.ingredients.join('\n');
-    if(data.steps && data.steps.length){ steps = data.steps.slice(); drawSteps(); }
+    if(data.ingredients && data.ingredients.length) document.getElementById('fIngredients').value = data.ingredients.map(convertLineUnits).join('\n');
+    if(data.steps && data.steps.length){ steps = data.steps.map(convertLineUnits); drawSteps(); }
     if(data.tagHint){
       const anyChecked = modalContent.querySelectorAll('#fTags .chip.active').length > 0;
       if(!anyChecked){
@@ -1319,6 +1478,21 @@ function renderEditForm(r){
       }
     }
   }
+
+  document.getElementById('btnConvertUnits').onclick = () => {
+    const statusEl = document.getElementById('convertStatus');
+    const ingEl = document.getElementById('fIngredients');
+    const beforeIng = ingEl.value;
+    const beforeSteps = steps.join('\n');
+    ingEl.value = beforeIng.split('\n').map(convertLineUnits).join('\n');
+    steps = steps.map(convertLineUnits);
+    drawSteps();
+    const changed = (ingEl.value !== beforeIng) || (steps.join('\n') !== beforeSteps);
+    statusEl.textContent = changed
+      ? 'Doplněno — metrické hodnoty jsou orientační (šálek/oz podle typu suroviny).'
+      : 'Nenašla jsem žádné americké jednotky (cup, oz, °F...) k převodu.';
+    statusEl.className = 'url-status';
+  };
 
   document.getElementById('btnTranslateNow').onclick = async () => {
     const statusEl = document.getElementById('translateStatus');
@@ -1356,7 +1530,7 @@ function renderEditForm(r){
       data = await fetchRecipeFromUrl(urlVal);
     }catch(e){
       console.error(e);
-      setUrlStatus('Nepodařilo se načíst automaticky. Zkus vložit zkopírovaný text stránky níže.', true);
+      setUrlStatus('Nepodařilo se načíst automaticky (' + (e && e.message ? e.message : 'neznámá chyba') + '). Zkus vložit zkopírovaný text stránky níže.', true);
       document.getElementById('pasteBox').classList.add('open');
       return;
     }
@@ -1560,11 +1734,15 @@ function openConverter(){
     <p class="conv-note">Pro americké recepty — orientační převody; u ingrediencí podle běžné hustoty (šálek mouky ≠ šálek medu).</p>
 
     <div class="conv-section">
-      <h4>Teplota</h4>
+      <h4>Hmotnost</h4>
       <div class="conv-row">
-        <input type="number" id="convF" placeholder="°F"> <span>°F</span>
+        <input type="number" id="convWeightAmount" value="1">
+        <select id="convWeightUnit">
+          <option value="28.3495">oz</option>
+          <option value="453.592">lb</option>
+        </select>
         <span>=</span>
-        <input type="number" id="convC" placeholder="°C"> <span>°C</span>
+        <strong id="convWeightResult">–</strong><span>g</span>
       </div>
     </div>
 
@@ -1609,15 +1787,11 @@ function openConverter(){
     </div>
 
     <div class="conv-section">
-      <h4>Hmotnost</h4>
+      <h4>Teplota</h4>
       <div class="conv-row">
-        <input type="number" id="convWeightAmount" value="1">
-        <select id="convWeightUnit">
-          <option value="28.3495">oz</option>
-          <option value="453.592">lb</option>
-        </select>
+        <input type="number" id="convF" placeholder="°F"> <span>°F</span>
         <span>=</span>
-        <strong id="convWeightResult">–</strong><span>g</span>
+        <input type="number" id="convC" placeholder="°C"> <span>°C</span>
       </div>
     </div>
   `;
