@@ -761,42 +761,95 @@ function extractJsonLdRecipe(html){
   return null;
 }
 
+function isMarkdownHeading(line){ return /^#{1,6}\s+\S/.test(line); }
+
+function stripBullet(s){
+  return s.replace(/^(?:[\*\-•]\s*)+(\[[ xX]\]\s*)?/, '').trim();
+}
+
+function extractTimeMinutes(lines, fullText){
+  // prefer a "45\nCELKOVÝ" / "45 min\nTOTAL" value+label pair when present
+  for(let i = 0; i < lines.length - 1; i++){
+    const m = lines[i].match(/^(\d+)\s*(min\w*)?\s*$/i);
+    if(m){
+      const nextNorm = normalize(lines[i+1]);
+      if(nextNorm.includes('celkov') || nextNorm.includes('total')) return parseInt(m[1],10);
+    }
+  }
+  let minutes = 0;
+  const hMatch = fullText.match(/(\d+)\s*(hod\.?|hodin\w*|h\b|hours?)/i);
+  const mMatch = fullText.match(/(\d+)\s*(min\.?|minut\w*|minutes?)/i);
+  if(hMatch) minutes += parseInt(hMatch[1],10) * 60;
+  if(mMatch) minutes += parseInt(mMatch[1],10);
+  return minutes;
+}
+
 function heuristicParseText(text){
   const lines = text.split('\n').map(l => l.trim());
   const ingKeywords = ['ingredience','suroviny','budete potrebovat','co budete potrebovat','potrebujeme','ingredients'];
   const insKeywords = ['postup','priprava','priprava kroku','instrukce','navod','method','directions','instructions'];
-  const stopKeywords = ['poznamka','nutricni','vyziva','hodnoceni','komentar','souvisejici','related','tisk','sdilet','stitky','tags'];
+  const stopKeywords = ['poznamka','nutricni','vyziva','hodnoceni','komentar','souvisejici','related','tisk','sdilet','stitky','tags','ulozeni','storage'];
+
+  // reader services (e.g. jina.ai) return markdown with real "#" headings —
+  // when present, section boundaries are far more reliable than plain-text guessing
+  const markdownMode = lines.some(isMarkdownHeading);
+
+  function headingMatches(line, keywords){
+    if(markdownMode){
+      const m = line.match(/^#{1,6}\s+(.+)$/);
+      if(!m) return false;
+      const n = normalize(m[1]);
+      return keywords.some(k => n === k || n.startsWith(k) || n.includes(k));
+    }
+    const n = normalize(line);
+    return n.length < 40 && keywords.some(k => n === k || n.includes(k));
+  }
+
+  function sectionEnd(fromIdx){
+    if(markdownMode){
+      for(let i = fromIdx; i < lines.length; i++){
+        if(isMarkdownHeading(lines[i])) return i;
+      }
+      return lines.length;
+    }
+    let end = lines.length;
+    for(let i = fromIdx; i < lines.length; i++){
+      const n = normalize(lines[i]);
+      if(n.length < 40 && stopKeywords.some(k => n.includes(k))){ end = i; break; }
+    }
+    return end;
+  }
 
   let ingIdx = -1, insIdx = -1;
   lines.forEach((line, i) => {
-    const n = normalize(line);
-    if(ingIdx === -1 && n.length < 40 && ingKeywords.some(k => n === k || n.includes(k))) ingIdx = i;
-    if(insIdx === -1 && ingIdx !== -1 && i > ingIdx && n.length < 40 && insKeywords.some(k => n === k || n.includes(k))) insIdx = i;
+    if(ingIdx === -1 && headingMatches(line, ingKeywords)) ingIdx = i;
+    if(insIdx === -1 && ingIdx !== -1 && i > ingIdx && headingMatches(line, insKeywords)) insIdx = i;
   });
 
   let ingredients = [];
   if(ingIdx !== -1){
-    const end = insIdx !== -1 ? insIdx : Math.min(lines.length, ingIdx + 31);
-    ingredients = lines.slice(ingIdx + 1, end).filter(l => l && l.length < 120);
+    const end = insIdx !== -1 ? insIdx : sectionEnd(ingIdx + 1);
+    ingredients = lines.slice(ingIdx + 1, end)
+      .map(stripBullet)
+      .filter(l => l && l.length < 140 && !isMarkdownHeading(l));
   }
 
   let steps = [];
   if(insIdx !== -1){
-    let end = lines.length;
-    for(let i = insIdx + 1; i < lines.length; i++){
-      const n = normalize(lines[i]);
-      if(n.length < 40 && stopKeywords.some(k => n.includes(k))){ end = i; break; }
-    }
-    steps = lines.slice(insIdx + 1, end).filter(Boolean).map(cleanStep);
+    const end = sectionEnd(insIdx + 1);
+    steps = lines.slice(insIdx + 1, end)
+      .map(stripBullet)
+      .filter(l => l && !isMarkdownHeading(l))
+      .map(cleanStep)
+      .filter(Boolean);
   }
 
-  const titleCandidate = lines.find(l => l && l.length > 2 && l.length < 100 && !l.includes('>')) || '';
+  const titleLine = lines.find(l => /^title:\s*/i.test(l));
+  const titleCandidate = titleLine
+    ? titleLine.replace(/^title:\s*/i, '').split(/\s[-|–]\s/)[0].trim()
+    : (lines.find(l => l && l.length > 2 && l.length < 100 && !l.includes('>') && !isMarkdownHeading(l)) || '');
 
-  let minutes = 0;
-  const hMatch = text.match(/(\d+)\s*(hod\.?|hodin\w*|h\b|hours?)/i);
-  const mMatch = text.match(/(\d+)\s*(min\.?|minut\w*|minutes?)/i);
-  if(hMatch) minutes += parseInt(hMatch[1],10) * 60;
-  if(mMatch) minutes += parseInt(mMatch[1],10);
+  const minutes = extractTimeMinutes(lines, text);
 
   return {
     name: titleCandidate,
