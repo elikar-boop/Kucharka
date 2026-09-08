@@ -817,7 +817,6 @@ async function fetchHtml(url){
   const proxies = [
     'https://api.allorigins.win/raw?url=' + encodeURIComponent(url),
     'https://api.codetabs.com/v1/proxy?quest=' + encodeURIComponent(url),
-    'https://corsproxy.io/?url=' + encodeURIComponent(url),
   ];
   let lastErr;
   for(const proxyUrl of proxies){
@@ -831,17 +830,43 @@ async function fetchHtml(url){
       lastErr = e;
     }
   }
-  throw new Error('všechny způsoby stažení selhaly' + (lastErr ? ': ' + lastErr.message : ''));
+  throw new Error('stažení stránky selhalo' + (lastErr ? ': ' + lastErr.message : ''));
+}
+
+async function fetchViaReader(url){
+  const res = await fetch('https://r.jina.ai/' + url);
+  if(!res.ok) throw new Error('reader http ' + res.status);
+  const text = await res.text();
+  if(!text || text.length < 100) throw new Error('reader prázdná odpověď');
+  return text;
 }
 
 async function fetchRecipeFromUrl(rawUrl){
   let url = rawUrl.trim();
   if(!/^https?:\/\//i.test(url)) url = 'https://' + url;
-  const html = await fetchHtml(url);
-  const structured = extractJsonLdRecipe(html);
-  if(structured && (structured.ingredients.length || structured.steps.length)) return structured;
-  const plainText = stripTags(html);
-  return heuristicParseText(plainText);
+
+  let html = null;
+  let htmlErr = null;
+  try{
+    html = await fetchHtml(url);
+  }catch(e){
+    htmlErr = e;
+  }
+
+  if(html){
+    const structured = extractJsonLdRecipe(html);
+    if(structured && (structured.ingredients.length || structured.steps.length)) return structured;
+    const heuristic = heuristicParseText(stripTags(html));
+    if(heuristic.ingredients.length || heuristic.steps.length) return heuristic;
+  }
+
+  // raw HTML failed entirely, or gave nothing usable (e.g. bot-protected site) — try a reader service as last resort
+  try{
+    const readerText = await fetchViaReader(url);
+    return heuristicParseText(readerText);
+  }catch(readerErr){
+    throw new Error((htmlErr ? htmlErr.message : 'stránka nemá rozpoznatelný recept') + ' / ' + readerErr.message);
+  }
 }
 
 // ---------- inline unit conversion (for recipe text) ----------
