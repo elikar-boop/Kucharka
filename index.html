@@ -168,20 +168,25 @@
     background: var(--paper);
     border: 1.5px dashed var(--line);
     border-radius: 12px;
-    padding: 15px 18px;
-    display:flex;
-    gap: 12px;
-    align-items: center;
-    flex-wrap: wrap;
-    position: relative;
+    padding: 16px 18px;
   }
-  .finder::before{
-    content: '🧺';
-    font-size: 18px;
-    flex-shrink: 0;
+  .pantry-head{ font-weight: 700; font-size: 14px; color: var(--primary-dark); margin-bottom: 10px; }
+  .pantry-add-row{ display:flex; gap: 8px; margin-bottom: 10px; }
+  .pantry-add-row input{ flex: 1; }
+  .pantry-list{ display:flex; flex-wrap: wrap; gap: 8px; margin-bottom: 12px; }
+  .pantry-item{
+    display:flex; align-items:center; gap:6px;
+    background: var(--bg); border: 1.5px solid var(--line); border-radius: 20px;
+    padding: 6px 6px 6px 11px; font-size: 13.5px; cursor: pointer;
   }
-  .finder label{ font-size: 13.5px; color: var(--ink-soft); white-space: nowrap; }
-  .finder input{ flex: 1 1 220px; }
+  .pantry-item.have{ background: var(--primary-tint); border-color: var(--primary); }
+  .pantry-item input[type=checkbox]{ width:15px; height:15px; accent-color: var(--primary); cursor:pointer; }
+  .pantry-del{ background:none; border:none; color: var(--ink-soft); cursor:pointer; font-size: 12px; padding: 2px 4px; border-radius: 50%; }
+  .pantry-del:hover{ color: var(--accent); background: rgba(156,69,54,0.1); }
+  .pantry-empty{ font-size: 13px; color: var(--ink-soft); margin-bottom: 12px; }
+  .finder-extra{ margin-bottom: 10px; }
+  .finder-extra input{ width: 100%; }
+  .finder > label{ display:flex; align-items:center; gap:6px; cursor:pointer; font-size: 13.5px; color: var(--ink-soft); }
 
   /* ---------- Grid ---------- */
   .grid{
@@ -345,29 +350,10 @@
   .data-actions{ display:flex; gap:10px; justify-content:center; flex-wrap:wrap; margin-bottom: 6px; }
   .data-actions .btn{ font-size: 13px; padding: 9px 16px; text-decoration: none; }
 
-  /* ---------- View tabs ---------- */
-  .view-tabs{
-    display:flex; justify-content:space-between; align-items:center;
-    flex-wrap: wrap; gap: 10px;
-    max-width: 1000px; margin: 0 auto; padding: 0 24px 10px;
-  }
-  .tabs-group{ display:flex; gap: 4px; }
-  .tab{
-    background:none; border:none; cursor:pointer;
-    font-family:'Karla',sans-serif; font-weight:700; font-size:14.5px;
-    padding: 9px 6px; color: var(--ink-soft);
-    border-bottom: 3px solid transparent;
-  }
-  .tab.active{ color: var(--primary-dark); border-bottom-color: var(--primary); }
-  .tab:hover{ color: var(--ink); }
-
   /* ---------- Home ---------- */
-  .home-hero{ max-width: 1000px; margin: 0 auto; padding: 14px 24px 4px; }
+  .home-hero{ max-width: 1000px; margin: 0 auto; padding: 34px 24px 4px; }
   .home-hero h2{ font-size: 30px; margin: 4px 0 16px; color: var(--primary-dark); }
   .home-hero .chips{ margin-bottom: 18px; }
-  .home-section{ max-width: 1000px; margin: 34px auto 0; padding: 0 24px; }
-  .home-section h3{ font-size: 18px; margin: 0 0 14px; color: var(--primary-dark); }
-  .home-empty{ color: var(--ink-soft); font-size: 14px; }
 
   /* ---------- Converter ---------- */
   .conv-section{ margin-bottom: 22px; }
@@ -397,7 +383,6 @@
     .modal-actions .right{ flex-direction: column-reverse; }
     .modal-actions button{ width: 100%; text-align: center; }
     body{ padding-bottom: calc(70px + env(safe-area-inset-bottom)); }
-    .view-tabs{ position: sticky; top: 0; background: var(--bg); z-index: 20; padding-top: 8px; }
   }
 </style>
 </head>
@@ -418,55 +403,48 @@
       <p>vlastní sbírka receptů</p>
     </div>
   </div>
-  <button class="btn btn-primary" id="btnNew">+ Nový recept</button>
+  <div style="display:flex; gap:10px; flex-wrap:wrap;">
+    <button type="button" class="btn btn-ghost" id="btnOpenConverter">🌡️ Převodník jednotek</button>
+    <button class="btn btn-primary" id="btnNew">+ Nový recept</button>
+  </div>
 </header>
 
-<div class="view-tabs">
-  <div class="tabs-group">
-    <button class="tab active" data-view="home">🏠 Domů</button>
-    <button class="tab" data-view="recipes">📖 Recepty</button>
-  </div>
-  <button type="button" class="btn btn-ghost" id="btnOpenConverter">🌡️ Převodník jednotek</button>
+<div class="home-hero">
+  <h2>Co dnes uvaříme?</h2>
+  <div class="chips" id="quickFilters"></div>
+  <button class="btn btn-primary" id="btnRandom">🎲 Vyber mi recept</button>
 </div>
 
-<div id="homeView">
-  <div class="home-hero">
-    <h2>Co dnes uvaříme?</h2>
-    <div class="chips" id="quickFilters"></div>
-    <button class="btn btn-primary" id="btnRandom">🎲 Vyber mi recept</button>
+<div class="toolbar">
+  <div class="search-row">
+    <input type="text" id="searchInput" placeholder="Hledat podle názvu, suroviny nebo štítku…">
   </div>
-  <div class="home-section">
-    <h3>Dnešní inspirace</h3>
-    <div class="grid" id="inspiraceGrid"></div>
-    <p class="home-empty" id="homeEmpty" style="display:none;">Zatím žádné recepty — přidej první tlačítkem „+ Nový recept“.</p>
+  <div class="chips" id="tagFilters"></div>
+  <div class="finder">
+    <div class="pantry-head">🧺 Co mám doma</div>
+    <div class="pantry-add-row">
+      <input type="text" id="pantryAddInput" placeholder="přidat surovinu do seznamu…">
+      <button type="button" class="btn btn-ghost" id="btnPantryAdd">+ Přidat</button>
+    </div>
+    <div class="pantry-list" id="pantryList"></div>
+    <div class="finder-extra">
+      <input type="text" id="haveInput" placeholder="krátkodobě navíc (nepřidá se do seznamu)…">
+    </div>
+    <label style="display:flex; align-items:center; gap:6px; cursor:pointer;">
+      <input type="checkbox" id="onlyFull" style="width:auto;"> jen recepty, na které mám vše
+    </label>
   </div>
 </div>
 
-<div id="recipesView" style="display:none;">
-  <div class="toolbar">
-    <div class="search-row">
-      <input type="text" id="searchInput" placeholder="Hledat podle názvu…">
-    </div>
-    <div class="chips" id="tagFilters"></div>
-    <div class="finder">
-      <label for="haveInput">Mám doma:</label>
-      <input type="text" id="haveInput" placeholder="např. vejce, hladká mouka, cibule…">
-      <label style="display:flex; align-items:center; gap:6px; cursor:pointer;">
-        <input type="checkbox" id="onlyFull" style="width:auto;"> jen recepty, na které mám vše
-      </label>
-    </div>
-  </div>
-
-  <div class="grid" id="grid"></div>
-  <div class="empty-state" id="emptyState" style="display:none;">
-    <svg viewBox="0 0 100 100" fill="none" stroke="#756B5C" stroke-width="2.2" stroke-linecap="round">
-      <ellipse cx="50" cy="72" rx="34" ry="9"/>
-      <path d="M18 55a32 22 0 0 0 64 0"/>
-      <path d="M50 20v22M40 26l10-8 10 8"/>
-    </svg>
-    <h3>Zatím žádné recepty</h3>
-    <p>Přidej první recept tlačítkem „+ Nový recept“.</p>
-  </div>
+<div class="grid" id="grid"></div>
+<div class="empty-state" id="emptyState" style="display:none;">
+  <svg viewBox="0 0 100 100" fill="none" stroke="#756B5C" stroke-width="2.2" stroke-linecap="round">
+    <ellipse cx="50" cy="72" rx="34" ry="9"/>
+    <path d="M18 55a32 22 0 0 0 64 0"/>
+    <path d="M50 20v22M40 26l10-8 10 8"/>
+  </svg>
+  <h3>Zatím žádné recepty</h3>
+  <p>Přidej první recept tlačítkem „+ Nový recept“.</p>
 </div>
 
 <footer>
@@ -567,8 +545,8 @@ async function loadRecipes(){
   }
   recipes = recipes.map(migrateRecipe);
   await saveRecipes();
-  render(); renderHome();
-  renderHome();
+  await loadPantry();
+  render();
 }
 
 async function saveRecipes(){
@@ -954,21 +932,23 @@ function renderTagFilters(){
     chip.onclick = () => {
       if(activeTagFilters.has(t.id)) activeTagFilters.delete(t.id);
       else activeTagFilters.add(t.id);
-      render(); renderHome();
+      render();
     };
     el.appendChild(chip);
   });
 }
 
 function starsHTML(rating, size){
+  const w = size === 'lg' ? 28 : 20;
+  const h = size === 'lg' ? 27 : 19;
   let html = `<div class="stars ${size==='lg'?'lg':''}">`;
   for(let i=1;i<=5;i++){
     const fraction = Math.max(0, Math.min(1, rating - (i-1)));
     html += `
       <span class="star" data-index="${i}">
-        <span class="bg-star"><svg viewBox="0 0 20 19"><path d="${STAR_PATH}"/></svg></span>
+        <span class="bg-star"><svg viewBox="0 0 20 19" style="width:${w}px;height:${h}px;"><path d="${STAR_PATH}"/></svg></span>
         <span class="fg-wrap" style="width:${fraction*100}%">
-          <svg viewBox="0 0 20 19" style="width:20px;height:19px;"><path d="${STAR_PATH}"/></svg>
+          <svg viewBox="0 0 20 19" style="width:${w}px;height:${h}px;"><path d="${STAR_PATH}"/></svg>
         </span>
       </span>`;
   }
@@ -1024,19 +1004,33 @@ function buildCardElement(r, m){
   return card;
 }
 
+function matchesSearch(r, searchTerm){
+  if(!searchTerm) return true;
+  if(normalize(r.name).includes(searchTerm)) return true;
+  if(r.ingredients.some(i => normalize(i).includes(searchTerm))) return true;
+  const tagLabels = r.tags.map(tid => { const t = TAGS.find(t=>t.id===tid); return t ? normalize(t.label) : ''; });
+  if(tagLabels.some(l => l.includes(searchTerm))) return true;
+  return false;
+}
+
 function render(){
   renderTagFilters();
+  renderQuickFilters();
+  renderPantryList();
   const searchTerm = normalize(document.getElementById('searchInput').value);
   const haveRaw = document.getElementById('haveInput').value;
-  const haveList = haveRaw.split(',').map(s => tokenize(s)).filter(arr => arr.length);
+  const extraTokens = haveRaw.split(',').map(s => tokenize(s)).filter(arr => arr.length);
+  const pantryTokens = pantryItems.filter(p => p.have).map(p => tokenize(p.name)).filter(arr => arr.length);
+  const haveList = [...extraTokens, ...pantryTokens];
   const onlyFull = document.getElementById('onlyFull').checked;
 
   let list = recipes.filter(r => {
-    if(searchTerm && !normalize(r.name).includes(searchTerm)) return false;
+    if(!matchesSearch(r, searchTerm)) return false;
     if(activeTagFilters.size > 0){
       const has = [...activeTagFilters].every(t => r.tags.includes(t));
       if(!has) return false;
     }
+    if(!matchesQuickFilters(r)) return false;
     return true;
   });
 
@@ -1055,7 +1049,7 @@ function render(){
   list.forEach(r => grid.appendChild(buildCardElement(r, matches[r.id])));
 }
 
-// ---------- home screen ----------
+// ---------- quick filters & random pick ----------
 const QUICK_FILTERS = [
   { id: 'fast', label: '⚡ do 20 min' },
   { id: 'favorite', label: '⭐ oblíbené (4+)' },
@@ -1081,26 +1075,10 @@ function renderQuickFilters(){
     chip.onclick = () => {
       if(quickFilterState.has(qf.id)) quickFilterState.delete(qf.id);
       else quickFilterState.add(qf.id);
-      renderHome();
+      render();
     };
     el.appendChild(chip);
   });
-}
-
-function renderHome(){
-  renderQuickFilters();
-  const inspiraceGrid = document.getElementById('inspiraceGrid');
-  const homeEmpty = document.getElementById('homeEmpty');
-  inspiraceGrid.innerHTML = '';
-  if(recipes.length === 0){
-    homeEmpty.style.display = 'block';
-    return;
-  }
-  homeEmpty.style.display = 'none';
-  const pool = recipes.filter(matchesQuickFilters);
-  const source = pool.length ? pool : recipes;
-  const shuffled = [...source].sort(() => Math.random() - 0.5).slice(0, 3);
-  shuffled.forEach(r => inspiraceGrid.appendChild(buildCardElement(r, null)));
 }
 
 function pickRandomRecipe(){
@@ -1111,11 +1089,67 @@ function pickRandomRecipe(){
   openView(pick.id);
 }
 
-function switchView(view){
-  document.querySelectorAll('.tab').forEach(b => b.classList.toggle('active', b.dataset.view === view));
-  document.getElementById('homeView').style.display = view === 'home' ? 'block' : 'none';
-  document.getElementById('recipesView').style.display = view === 'recipes' ? 'block' : 'none';
-  if(view === 'home') renderHome(); else render(); renderHome();
+// ---------- pantry (persistent "co mám doma" checklist) ----------
+const PANTRY_KEY = 'kucharka_pantry_v1';
+let pantryItems = [];
+
+async function loadPantry(){
+  try{
+    const raw = localStorage.getItem(PANTRY_KEY);
+    pantryItems = raw ? JSON.parse(raw) : [];
+  }catch(e){
+    console.error('Načtení spíže selhalo', e);
+    pantryItems = [];
+  }
+}
+
+async function savePantry(){
+  try{
+    localStorage.setItem(PANTRY_KEY, JSON.stringify(pantryItems));
+  }catch(e){
+    console.error('Uložení spíže selhalo', e);
+  }
+}
+
+function renderPantryList(){
+  const el = document.getElementById('pantryList');
+  if(!pantryItems.length){
+    el.innerHTML = '<p class="pantry-empty">Zatím prázdné — přidej suroviny, které míváš doma, ať je nemusíš pokaždé přepisovat.</p>';
+    return;
+  }
+  el.innerHTML = pantryItems.map(item => `
+    <label class="pantry-item ${item.have ? 'have' : ''}" data-id="${item.id}">
+      <input type="checkbox" data-id="${item.id}" ${item.have ? 'checked' : ''}>
+      <span>${escapeHtml(item.name)}</span>
+      <button type="button" class="pantry-del" data-id="${item.id}" title="Smazat">✕</button>
+    </label>
+  `).join('');
+  el.querySelectorAll('input[type=checkbox]').forEach(cb => {
+    cb.addEventListener('change', () => {
+      const item = pantryItems.find(p => p.id === cb.dataset.id);
+      if(item){ item.have = cb.checked; savePantry(); }
+      cb.closest('.pantry-item').classList.toggle('have', cb.checked);
+      render();
+    });
+  });
+  el.querySelectorAll('.pantry-del').forEach(btn => {
+    btn.onclick = (e) => {
+      e.preventDefault();
+      pantryItems = pantryItems.filter(p => p.id !== btn.dataset.id);
+      savePantry();
+      render();
+    };
+  });
+}
+
+function addPantryItem(){
+  const input = document.getElementById('pantryAddInput');
+  const name = input.value.trim();
+  if(!name) return;
+  pantryItems.push({ id: uid(), name, have: true });
+  input.value = '';
+  savePantry();
+  render();
 }
 
 function formatTime(min){
@@ -1130,6 +1164,33 @@ function escapeHtml(s){
   const d = document.createElement('div');
   d.textContent = s || '';
   return d.innerHTML;
+}
+
+async function shareRecipe(r){
+  const lines = [];
+  lines.push(r.name);
+  if(r.time) lines.push(`⏱ ${formatTime(r.time)}`);
+  lines.push('');
+  lines.push('Suroviny:');
+  r.ingredients.forEach(i => lines.push('- ' + i));
+  lines.push('');
+  lines.push('Postup:');
+  (r.steps || []).forEach((s, i) => lines.push(`${i+1}. ${s}`));
+  if(r.url){ lines.push(''); lines.push('Zdroj: ' + r.url); }
+  const text = lines.join('\n');
+
+  if(navigator.share){
+    try{
+      await navigator.share({ title: r.name, text });
+    }catch(e){ /* uživatel sdílení zrušil — nic neděláme */ }
+    return;
+  }
+  try{
+    await navigator.clipboard.writeText(text);
+    alert('Sdílení tu prohlížeč nepodporuje, tak jsem recept aspoň zkopírovala do schránky.');
+  }catch(e){
+    alert('Sdílení ani kopírování do schránky se tu bohužel nepodařilo.');
+  }
 }
 
 // ---------- modal: view ----------
@@ -1225,10 +1286,12 @@ function renderViewModal(r){
       <h2>${escapeHtml(r.name)}</h2>
       <div style="display:flex; gap:4px;">
         <button class="icon-btn" id="btnEdit" title="Upravit"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg></button>
+        <button class="icon-btn" id="btnShare" title="Sdílet"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12v7a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-7"/><path d="M16 6l-4-4-4 4"/><path d="M12 2v13"/></svg></button>
         <button class="icon-btn" id="btnDelete" title="Smazat"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/></svg></button>
         <button class="icon-btn" id="btnClose" title="Zavřít">✕</button>
       </div>
     </div>
+    ${r.url ? `<div style="margin:-4px 0 14px;"><a href="${escapeHtml(r.url)}" target="_blank" rel="noopener">🔗 ${escapeHtml(r.url)}</a></div>` : ''}
     <div class="tags" style="margin-bottom:14px;">
       ${r.tags.map(tid => { const t=TAGS.find(t=>t.id===tid); return t ? `<span class="tag-pill" style="background:${t.color}">${t.label}</span>` : ''; }).join('')}
       ${r.time ? `<span style="font-size:12.5px; color:var(--ink-soft); align-self:center; margin-left:4px;">⏱ ${formatTime(r.time)}</span>` : ''}
@@ -1255,8 +1318,6 @@ function renderViewModal(r){
       <h4>Postup</h4>
       <ol class="steps-view">${(r.steps||[]).map(s => `<li>${escapeHtml(s)}</li>`).join('')}</ol>
     </div>
-
-    ${r.url ? `<div class="view-block"><h4>Odkaz</h4><a href="${escapeHtml(r.url)}" target="_blank" rel="noopener">${escapeHtml(r.url)}</a></div>` : ''}
 
     <div class="field">
       <label>Poznámka</label>
@@ -1301,14 +1362,15 @@ function renderViewModal(r){
     r.note = e.target.value;
     saveRecipes();
   });
-  document.getElementById('btnClose').onclick = () => { closeModal(); render(); renderHome(); };
+  document.getElementById('btnClose').onclick = () => { closeModal(); render(); };
   document.getElementById('btnEdit').onclick = () => openEdit(r.id);
+  document.getElementById('btnShare').onclick = () => shareRecipe(r);
   document.getElementById('btnDelete').onclick = () => {
     if(confirm(`Opravdu smazat recept „${r.name}“?`)){
       recipes = recipes.filter(x => x.id !== r.id);
       saveRecipes();
       closeModal();
-      render(); renderHome();
+      render();
     }
   };
 }
@@ -1319,7 +1381,7 @@ function rebindViewStars(r, starsWrap){
     saveRecipes();
     starsWrap.innerHTML = starsHTML(r.rating, 'lg');
     rebindViewStars(r, starsWrap);
-    render(); renderHome();
+    render();
   });
 }
 
@@ -1342,6 +1404,20 @@ function renderEditForm(r){
       <input type="text" id="fName" value="${escapeHtml(draft.name)}" placeholder="Např. Bramborový salát">
     </div>
 
+    <div class="field">
+      <label>URL odkaz na recept</label>
+      <div class="url-row">
+        <input type="url" id="fUrl" value="${escapeHtml(draft.url)}" placeholder="https://…">
+        <button type="button" class="btn btn-ghost" id="btnAutoFetch" style="white-space:nowrap;">Načíst automaticky</button>
+      </div>
+      <div class="url-status" id="urlStatus"></div>
+      <button type="button" class="paste-toggle" id="btnTogglePaste">nebo vlož zkopírovaný text stránky ručně</button>
+      <div class="paste-box" id="pasteBox">
+        <textarea id="fPasteText" placeholder="Vlož sem zkopírovaný text receptu ze stránky (název, suroviny, postup)…" style="min-height:110px; margin-bottom:8px;"></textarea>
+        <button type="button" class="btn btn-ghost" id="btnParsePaste">Rozpoznat z textu</button>
+      </div>
+    </div>
+
     <div class="field-row">
       <div class="field">
         <label>Čas přípravy (minuty)</label>
@@ -1357,16 +1433,6 @@ function renderEditForm(r){
     </div>
 
     <div class="field">
-      <button type="button" class="btn btn-ghost" id="btnTranslateNow">Přeložit název, suroviny a postup do češtiny</button>
-      <div class="url-status" id="translateStatus"></div>
-    </div>
-
-    <div class="field">
-      <button type="button" class="btn btn-ghost" id="btnConvertUnits">🔄 Doplnit metrické jednotky (g/ml/°C)</button>
-      <div class="url-status" id="convertStatus"></div>
-    </div>
-
-    <div class="field">
       <label>Suroviny (jedna na řádek)</label>
       <textarea id="fIngredients" placeholder="250 g mouky&#10;2 vejce&#10;…">${escapeHtml(draft.ingredients.join('\n'))}</textarea>
     </div>
@@ -1378,20 +1444,6 @@ function renderEditForm(r){
     </div>
 
     <div class="field">
-      <label>URL odkaz na recept</label>
-      <div class="url-row">
-        <input type="url" id="fUrl" value="${escapeHtml(draft.url)}" placeholder="https://…">
-        <button type="button" class="btn btn-ghost" id="btnAutoFetch" style="white-space:nowrap;">Načíst automaticky</button>
-      </div>
-      <div class="url-status" id="urlStatus"></div>
-      <button type="button" class="paste-toggle" id="btnTogglePaste">nebo vlož zkopírovaný text stránky ručně</button>
-      <div class="paste-box" id="pasteBox">
-        <textarea id="fPasteText" placeholder="Vlož sem zkopírovaný text receptu ze stránky (název, suroviny, postup)…" style="min-height:110px; margin-bottom:8px;"></textarea>
-        <button type="button" class="btn btn-ghost" id="btnParsePaste">Rozpoznat z textu</button>
-      </div>
-    </div>
-
-    <div class="field">
       <label>Poznámka</label>
       <textarea id="fNote" placeholder="Vlastní poznámka…">${escapeHtml(draft.note)}</textarea>
     </div>
@@ -1399,6 +1451,16 @@ function renderEditForm(r){
     <div class="field">
       <label>Hodnocení</label>
       <div id="editStars"></div>
+    </div>
+
+    <div class="field">
+      <button type="button" class="btn btn-ghost" id="btnTranslateNow">Přeložit název, suroviny a postup do češtiny</button>
+      <div class="url-status" id="translateStatus"></div>
+    </div>
+
+    <div class="field">
+      <button type="button" class="btn btn-ghost" id="btnConvertUnits">🔄 Doplnit metrické jednotky (g/ml/°C)</button>
+      <div class="url-status" id="convertStatus"></div>
     </div>
 
     <div class="modal-actions">
@@ -1634,7 +1696,7 @@ function renderEditForm(r){
     editingId = draft.id;
     modalMode = 'view';
     renderModal();
-    render(); renderHome();
+    render();
   };
 }
 
@@ -1643,12 +1705,12 @@ document.getElementById('btnNew').onclick = openNew;
 document.getElementById('searchInput').addEventListener('input', render);
 document.getElementById('haveInput').addEventListener('input', render);
 document.getElementById('onlyFull').addEventListener('change', render);
-overlay.addEventListener('click', (e) => { if(e.target === overlay){ closeModal(); render(); renderHome(); } });
+overlay.addEventListener('click', (e) => { if(e.target === overlay){ closeModal(); render(); } });
 document.getElementById('btnResetAll').onclick = () => {
   if(confirm('Opravdu smazat úplně všechny recepty? Tuto akci nelze vrátit zpět.')){
     recipes = [];
     saveRecipes();
-    render(); renderHome();
+    render();
   }
 };
 
@@ -1712,7 +1774,7 @@ document.getElementById('importFile').addEventListener('change', (e) => {
       added++;
     });
     saveRecipes();
-    render(); renderHome();
+    render();
     let msg = `Přidáno ${added} receptů ze zálohy.`;
     if(skipped) msg += ` ${skipped} už tu podle názvu bylo, ty se přeskočily.`;
     setImportStatus(msg);
@@ -1842,11 +1904,12 @@ function wireConverter(){
 document.getElementById('btnOpenConverter').onclick = openConverter;
 converterOverlay.addEventListener('click', (e) => { if(e.target === converterOverlay) converterOverlay.classList.remove('open'); });
 
-// ---------- view tabs ----------
-document.querySelectorAll('.tab').forEach(btn => {
-  btn.onclick = () => switchView(btn.dataset.view);
-});
 document.getElementById('btnRandom').onclick = pickRandomRecipe;
+
+document.getElementById('btnPantryAdd').onclick = addPantryItem;
+document.getElementById('pantryAddInput').addEventListener('keydown', (e) => {
+  if(e.key === 'Enter'){ e.preventDefault(); addPantryItem(); }
+});
 
 loadRecipes();
 </script>
