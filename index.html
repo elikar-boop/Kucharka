@@ -518,7 +518,9 @@ function stem(word){
 }
 
 function cleanStep(s){
-  return (s||'').replace(/^\s*(krok\s*\d+[:.\)]?|step\s*\d+[:.\)]?|\d+[\.\)])\s*/i,'').trim();
+  s = (s||'').trim();
+  if(/^\d+[\.\)]?$/.test(s)) return ''; // just a step number on its own, no real content
+  return s.replace(/^\s*(krok\s*\d+[:.\)]?|step\s*\d+[:.\)]?|\d+[\.\)])\s*/i,'').trim();
 }
 
 // ---------- persistence ----------
