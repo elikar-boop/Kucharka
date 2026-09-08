@@ -519,7 +519,7 @@ function stem(word){
 
 function cleanStep(s){
   s = (s||'').trim();
-  if(/^\d+[\.\)]?$/.test(s)) return ''; // just a step number on its own, no real content
+  if(s && !/[a-zA-ZÀ-ž]/.test(s)) return ''; // no letters at all — just a bare number/punctuation, not real step text
   return s.replace(/^\s*(krok\s*\d+[:.\)]?|step\s*\d+[:.\)]?|\d+[\.\)])\s*/i,'').trim();
 }
 
