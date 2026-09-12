@@ -35,6 +35,8 @@
     --tag-leto: #D2A22E;
     --tag-podzim: #B06B34;
     --tag-zima: #4C6F8C;
+    --tag-bezmasne: #5C8A6E;
+    --tag-dezert: #7C5A96;
   }
 
   *{ box-sizing: border-box; }
@@ -187,6 +189,14 @@
   .finder-extra{ margin-bottom: 10px; }
   .finder-extra input{ width: 100%; }
   .finder > label{ display:flex; align-items:center; gap:6px; cursor:pointer; font-size: 13.5px; color: var(--ink-soft); }
+
+  .sort-row{ display:flex; align-items:center; gap: 10px; margin-top: 14px; }
+  .sort-row label{ font-size: 13.5px; font-weight: 700; color: var(--ink-soft); white-space: nowrap; }
+  .sort-row select{
+    flex: 1; font-family: 'Karla', sans-serif; font-size: 14px;
+    padding: 9px 11px; border-radius: 7px; border: 1.5px solid var(--line);
+    background: var(--paper); color: var(--ink);
+  }
 
   /* ---------- Grid ---------- */
   .grid{
@@ -350,6 +360,27 @@
   .data-actions{ display:flex; gap:10px; justify-content:center; flex-wrap:wrap; margin-bottom: 6px; }
   .data-actions .btn{ font-size: 13px; padding: 9px 16px; text-decoration: none; }
 
+  .scroll-top-btn{
+    position: fixed;
+    right: 18px;
+    bottom: calc(20px + env(safe-area-inset-bottom));
+    width: 46px; height: 46px;
+    border-radius: 50%;
+    background: var(--primary);
+    color: #fff;
+    border: none;
+    font-size: 20px;
+    box-shadow: 0 4px 14px rgba(0,0,0,0.28);
+    cursor: pointer;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 40;
+    transition: transform .15s ease, opacity .2s ease;
+  }
+  .scroll-top-btn.visible{ display: flex; }
+  .scroll-top-btn:active{ transform: scale(0.92); }
+
   /* ---------- Home ---------- */
   .home-hero{ max-width: 1000px; margin: 0 auto; padding: 34px 24px 4px; }
   .home-hero h2{ font-size: 30px; margin: 4px 0 16px; color: var(--primary-dark); }
@@ -434,6 +465,16 @@
       <input type="checkbox" id="onlyFull" style="width:auto;"> jen recepty, na které mám vše
     </label>
   </div>
+
+  <div class="sort-row">
+    <label for="sortSelect">Seřazení</label>
+    <select id="sortSelect">
+      <option value="newest">od nejnovějšího</option>
+      <option value="oldest">od nejstaršího</option>
+      <option value="rating">od nejlépe hodnocených</option>
+      <option value="ingredients">podle počtu dostupných ingrediencí</option>
+    </select>
+  </div>
 </div>
 
 <div class="grid" id="grid"></div>
@@ -457,6 +498,8 @@
   <button id="btnResetAll">smazat všechny recepty</button>
 </footer>
 
+<button type="button" id="btnScrollTop" class="scroll-top-btn" title="Nahoru" aria-label="Nahoru">↑</button>
+
 <div class="overlay" id="overlay">
   <div class="modal">
     <div class="modal-strip"></div>
@@ -473,16 +516,18 @@
 
 <script>
 const TAGS = [
-  { id: 'sladke', label: 'sladké', color: 'var(--tag-sladke)' },
-  { id: 'slane', label: 'slané', color: 'var(--tag-slane)' },
-  { id: 'snidane', label: 'snídaně', color: 'var(--tag-snidane)' },
-  { id: 'obed', label: 'oběd/večeře', color: 'var(--tag-obed)' },
   { id: 'vyzkouseno', label: 'vyzkoušeno', color: 'var(--tag-vyzkouseno)' },
   { id: 'nevyzkouseno', label: 'nevyzkoušeno', color: 'var(--tag-nevyzkouseno)' },
+  { id: 'snidane', label: 'snídaně', color: 'var(--tag-snidane)' },
+  { id: 'obed', label: 'hlavní jídlo', color: 'var(--tag-obed)' },
+  { id: 'dezert', label: 'dezert', color: 'var(--tag-dezert)' },
+  { id: 'slane', label: 'slané', color: 'var(--tag-slane)' },
+  { id: 'sladke', label: 'sladké', color: 'var(--tag-sladke)' },
   { id: 'jaro', label: 'jaro', color: 'var(--tag-jaro)' },
   { id: 'leto', label: 'léto', color: 'var(--tag-leto)' },
   { id: 'podzim', label: 'podzim', color: 'var(--tag-podzim)' },
   { id: 'zima', label: 'zima', color: 'var(--tag-zima)' },
+  { id: 'bezmasne', label: 'bezmasé', color: 'var(--tag-bezmasne)' },
 ];
 
 const EXCLUSIVE_PAIRS = [['vyzkouseno','nevyzkouseno']];
@@ -526,7 +571,7 @@ function cleanStep(s){
 // ---------- persistence ----------
 const STORAGE_KEY = 'kucharka_recipes_v1';
 
-function migrateRecipe(r){
+function migrateRecipe(r, orderIndex, total){
   if(!Array.isArray(r.steps)){
     const src = typeof r.instructions === 'string' ? r.instructions : '';
     r.steps = src.split('\n').map(s => cleanStep(s.trim())).filter(Boolean);
@@ -534,6 +579,10 @@ function migrateRecipe(r){
   ensureChecked(r);
   if(!Array.isArray(r.tags)) r.tags = [];
   if(typeof r.rating !== 'number') r.rating = 0;
+  if(typeof r.createdAt !== 'number'){
+    // no timestamp yet (older save) — backfill so existing order (oldest→newest) is preserved
+    r.createdAt = Date.now() - (total - orderIndex) * 1000;
+  }
   return r;
 }
 
@@ -545,7 +594,7 @@ async function loadRecipes(){
     console.error('Načtení receptů selhalo', e);
     recipes = seedRecipes();
   }
-  recipes = recipes.map(migrateRecipe);
+  recipes = recipes.map((r, i, arr) => migrateRecipe(r, i, arr.length));
   await saveRecipes();
   await loadPantry();
   render();
@@ -896,6 +945,11 @@ async function fetchViaReader(url){
   return text;
 }
 
+function withUrlTagHint(result, url){
+  result.tagHint = normalize(`${result.tagHint || ''} ${url} ${result.name || ''}`);
+  return result;
+}
+
 async function fetchRecipeFromUrl(rawUrl){
   let url = rawUrl.trim();
   if(!/^https?:\/\//i.test(url)) url = 'https://' + url;
@@ -910,21 +964,35 @@ async function fetchRecipeFromUrl(rawUrl){
 
   if(html){
     const structured = extractJsonLdRecipe(html);
-    if(structured && (structured.ingredients.length || structured.steps.length)) return structured;
+    if(structured && (structured.ingredients.length || structured.steps.length)) return withUrlTagHint(structured, url);
     const heuristic = heuristicParseText(stripTags(html));
-    if(heuristic.ingredients.length || heuristic.steps.length) return heuristic;
+    if(heuristic.ingredients.length || heuristic.steps.length) return withUrlTagHint(heuristic, url);
   }
 
   // raw HTML failed entirely, or gave nothing usable (e.g. bot-protected site) — try a reader service as last resort
   try{
     const readerText = await fetchViaReader(url);
-    return heuristicParseText(readerText);
+    return withUrlTagHint(heuristicParseText(readerText), url);
   }catch(readerErr){
     throw new Error((htmlErr ? htmlErr.message : 'stránka nemá rozpoznatelný recept') + ' / ' + readerErr.message);
   }
 }
 
 // ---------- inline unit conversion (for recipe text) ----------
+const MEAT_WORDS = [
+  'kure','kureci','hovezi','vepr','veprove','krocan','krocenci','kachna','husa',
+  'klobasa','salam','sunka','slanina','pancetta','prosciutto',
+  'ryba','losos','tunak','treska','kreveta','krevety','mida','krab',
+  'maso','jehneci','skopove','zver','divocina',
+  'chicken','beef','pork','turkey','duck','sausage','ham','bacon',
+  'fish','salmon','tuna','shrimp','prawn','crab','lamb','meat','bison','veal',
+];
+
+function hasMeatIngredient(ingredients){
+  const stems = ingredients.flatMap(tokenize).map(stem);
+  return MEAT_WORDS.some(w => stems.includes(stem(w)));
+}
+
 const CUP_DENSITY_KEYWORDS = [
   { word: 'mouka', gramsPerCup: 120 }, { word: 'flour', gramsPerCup: 120 },
   { word: 'cukr', gramsPerCup: 200 }, { word: 'sugar', gramsPerCup: 200 },
@@ -1068,10 +1136,9 @@ function buildCardElement(r, m){
     matchHtml = `<div class="match ${cls}">${m.matched}/${m.total} ingrediencí ${m.matched===m.total ? 'máš vše ✓' : '· chybí: ' + m.missing.slice(0,3).join(', ') + (m.missing.length>3?'…':'')}</div>`;
   }
   card.innerHTML = `
-    <div class="tags">${r.tags.map(tid => {
-      const t = TAGS.find(t=>t.id===tid);
-      return t ? `<span class="tag-pill" style="background:${t.color}">${t.label}</span>` : '';
-    }).join('')}</div>
+    <div class="tags">${TAGS.filter(t => r.tags.includes(t.id)).map(t =>
+      `<span class="tag-pill" style="background:${t.color}">${t.label}</span>`
+    ).join('')}</div>
     <h3>${escapeHtml(r.name)}</h3>
     <div class="meta">
       <span class="time">${r.time ? '⏱ ' + formatTime(r.time) : ''}</span>
@@ -1118,9 +1185,24 @@ function render(){
   if(haveList.length > 0){
     list = list.map(r => ({ r, m: ingredientMatch(r, haveList) }));
     if(onlyFull) list = list.filter(x => x.m.matched === x.m.total);
-    list.sort((a,b) => (b.m.matched/b.m.total) - (a.m.matched/a.m.total));
     list.forEach(x => matches[x.r.id] = x.m);
     list = list.map(x => x.r);
+  }
+
+  const sortMode = document.getElementById('sortSelect').value;
+  if(sortMode === 'rating'){
+    list.sort((a,b) => (b.rating||0) - (a.rating||0));
+  } else if(sortMode === 'ingredients'){
+    list.sort((a,b) => {
+      const ma = matches[a.id], mb = matches[b.id];
+      const ra = ma ? ma.matched / ma.total : 0;
+      const rb = mb ? mb.matched / mb.total : 0;
+      return rb - ra;
+    });
+  } else if(sortMode === 'oldest'){
+    list.sort((a,b) => (a.createdAt||0) - (b.createdAt||0));
+  } else {
+    list.sort((a,b) => (b.createdAt||0) - (a.createdAt||0));
   }
 
   grid.innerHTML = '';
@@ -1244,6 +1326,13 @@ function escapeHtml(s){
   const d = document.createElement('div');
   d.textContent = s || '';
   return d.innerHTML;
+}
+
+function autoGrowTextarea(el){
+  if(!el) return;
+  el.style.overflowY = 'hidden';
+  el.style.height = 'auto';
+  el.style.height = (el.scrollHeight + 2) + 'px';
 }
 
 async function shareRecipe(r){
@@ -1371,11 +1460,11 @@ function renderViewModal(r){
         <button class="icon-btn" id="btnClose" title="Zavřít">✕</button>
       </div>
     </div>
-    ${r.url ? `<div style="margin:-4px 0 14px;"><a href="${escapeHtml(r.url)}" target="_blank" rel="noopener">🔗 ${escapeHtml(r.url)}</a></div>` : ''}
     <div class="tags" style="margin-bottom:14px;">
-      ${r.tags.map(tid => { const t=TAGS.find(t=>t.id===tid); return t ? `<span class="tag-pill" style="background:${t.color}">${t.label}</span>` : ''; }).join('')}
+      ${TAGS.filter(t => r.tags.includes(t.id)).map(t => `<span class="tag-pill" style="background:${t.color}">${t.label}</span>`).join('')}
       ${r.time ? `<span style="font-size:12.5px; color:var(--ink-soft); align-self:center; margin-left:4px;">⏱ ${formatTime(r.time)}</span>` : ''}
     </div>
+    ${r.url ? `<div style="margin:-4px 0 14px;"><a href="${escapeHtml(r.url)}" target="_blank" rel="noopener">🔗 ${escapeHtml(r.url)}</a></div>` : ''}
 
     <div class="field" style="margin-bottom:18px;">
       <label>Hodnocení</label>
@@ -1584,6 +1673,10 @@ function renderEditForm(r){
   drawSteps();
   document.getElementById('btnAddStep').onclick = () => { steps.push(''); drawSteps(); };
 
+  const ingFieldEl = document.getElementById('fIngredients');
+  autoGrowTextarea(ingFieldEl);
+  ingFieldEl.addEventListener('input', () => autoGrowTextarea(ingFieldEl));
+
   const starsWrap = document.getElementById('editStars');
   function drawEditStars(){
     starsWrap.innerHTML = starsHTML(draft.rating, 'lg');
@@ -1601,22 +1694,39 @@ function renderEditForm(r){
     if(data.name) document.getElementById('fName').value = data.name;
     if(data.time) document.getElementById('fTime').value = data.time;
     if(data.ingredients && data.ingredients.length) document.getElementById('fIngredients').value = data.ingredients.map(convertLineUnits).join('\n');
+    autoGrowTextarea(document.getElementById('fIngredients'));
     if(data.steps && data.steps.length){ steps = data.steps.map(convertLineUnits); drawSteps(); }
     if(data.tagHint){
-      const anyChecked = modalContent.querySelectorAll('#fTags .chip.active').length > 0;
+      // ignore the default vyzkoušeno/nevyzkoušeno status tag when deciding whether the
+      // person already made their own category choice — that shouldn't block guessing
+      const statusTags = new Set(EXCLUSIVE_PAIRS.flat());
+      const anyChecked = Array.from(modalContent.querySelectorAll('#fTags .chip.active'))
+        .some(chip => !statusTags.has(chip.dataset.tag));
       if(!anyChecked){
         const guesses = [
-          ['sladke', ['sladk','dezert','kolac','dort','cukrovi']],
-          ['slane', ['slan']],
-          ['snidane', ['snidan']],
-          ['obed', ['obed','veceri','hlavni chod']],
+          ['snidane', ['snidan','breakfast','brunch']],
+          ['obed', ['obed','veceri','hlavni chod','dinner','lunch','maincourse','main-course','entree']],
+          ['dezert', ['dezert','dessert','kolac','dort','cukrovi','cookie','pie','tart']],
+          ['slane', ['slan','savory','savoury']],
+          ['sladke', ['sladk','sweet']],
+          ['jaro', ['jarn','spring','velikonoc']],
+          ['leto', ['letni','summer']],
+          ['podzim', ['podzimni','autumn','fall']],
+          ['zima', ['zimni','winter','vanoc','christmas']],
         ];
         guesses.forEach(([tid, keys]) => {
           if(keys.some(k => data.tagHint.includes(k))){
             const chip = modalContent.querySelector(`#fTags .chip[data-tag="${tid}"]`);
-            if(chip) chip.click();
+            if(chip && !chip.classList.contains('active')) chip.click();
           }
         });
+
+        const meatlessHint = ['vegetarian','bezmasy','bezmasa','bezmase','veggie','meatless','plant based','plant-based','vegan'].some(k => data.tagHint.includes(k));
+        const looksMeatless = data.ingredients && data.ingredients.length && !hasMeatIngredient(data.ingredients);
+        if(meatlessHint || looksMeatless){
+          const chip = modalContent.querySelector('#fTags .chip[data-tag="bezmasne"]');
+          if(chip && !chip.classList.contains('active')) chip.click();
+        }
       }
     }
   }
@@ -1767,6 +1877,7 @@ function renderEditForm(r){
     draft.note = document.getElementById('fNote').value.trim();
 
     if(isNew){
+      draft.createdAt = Date.now();
       recipes.push(draft);
     } else {
       const idx = recipes.findIndex(x=>x.id===draft.id);
@@ -1785,6 +1896,13 @@ document.getElementById('btnNew').onclick = openNew;
 document.getElementById('searchInput').addEventListener('input', render);
 document.getElementById('haveInput').addEventListener('input', render);
 document.getElementById('onlyFull').addEventListener('change', render);
+document.getElementById('sortSelect').addEventListener('change', render);
+
+const scrollTopBtn = document.getElementById('btnScrollTop');
+window.addEventListener('scroll', () => {
+  scrollTopBtn.classList.toggle('visible', window.scrollY > 400);
+});
+scrollTopBtn.onclick = () => window.scrollTo({ top: 0, behavior: 'smooth' });
 overlay.addEventListener('click', (e) => { if(e.target === overlay){ closeModal(); render(); } });
 document.getElementById('btnResetAll').onclick = () => {
   if(confirm('Opravdu smazat úplně všechny recepty? Tuto akci nelze vrátit zpět.')){
