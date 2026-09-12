@@ -311,6 +311,12 @@
   .ing-row input[type=checkbox]{ width: 17px; height:17px; margin-top: 2px; accent-color: var(--primary); cursor: pointer; }
   .ing-row span{ line-height: 1.4; }
   .ing-row.checked span{ color: var(--ink-soft); text-decoration: line-through; }
+  .ing-label{
+    font-weight: 700; font-family: 'Fraunces', serif; font-size: 15px;
+    color: var(--primary-dark); margin: 12px 0 4px; padding-top: 6px;
+    border-top: 1px dashed var(--line);
+  }
+  .ing-label:first-child{ margin-top: 0; padding-top: 0; border-top: none; }
   .ing-head{ display:flex; align-items:center; justify-content: space-between; margin-bottom: 8px; }
   .ing-head button{ background:none; border:none; color: var(--ink-soft); font-size: 12px; text-decoration: underline; cursor: pointer; padding:0; }
 
@@ -521,13 +527,13 @@ const TAGS = [
   { id: 'snidane', label: 'snídaně', color: 'var(--tag-snidane)' },
   { id: 'obed', label: 'hlavní jídlo', color: 'var(--tag-obed)' },
   { id: 'dezert', label: 'dezert', color: 'var(--tag-dezert)' },
-  { id: 'slane', label: 'slané', color: 'var(--tag-slane)' },
   { id: 'sladke', label: 'sladké', color: 'var(--tag-sladke)' },
+  { id: 'slane', label: 'slané', color: 'var(--tag-slane)' },
+  { id: 'bezmasne', label: 'bezmasé', color: 'var(--tag-bezmasne)' },
   { id: 'jaro', label: 'jaro', color: 'var(--tag-jaro)' },
   { id: 'leto', label: 'léto', color: 'var(--tag-leto)' },
   { id: 'podzim', label: 'podzim', color: 'var(--tag-podzim)' },
   { id: 'zima', label: 'zima', color: 'var(--tag-zima)' },
-  { id: 'bezmasne', label: 'bezmasé', color: 'var(--tag-bezmasne)' },
 ];
 
 const EXCLUSIVE_PAIRS = [['vyzkouseno','nevyzkouseno']];
@@ -1022,6 +1028,26 @@ function parseAmountStr(s){
   return parseFloat(s.replace(',', '.')) || 0;
 }
 
+function stripMarkdownFormatting(s){
+  return (s || '')
+    .replace(/\[([^\]]+)\]\([^)]*\)/g, '$1')       // [name](url) -> name
+    .replace(/\*\*([^*]+)\*\*/g, '$1')              // **bold** -> bold
+    .replace(/\*([^*]+)\*/g, '$1')                  // *italic* -> italic
+    .replace(/([a-záčďéěíňóřšťúůýž])(\d)/gi, '$1 $2') // missing space, e.g. "brambory500" -> "brambory 500"
+    .replace(/[ \t]{2,}/g, ' ')
+    .trim();
+}
+
+function reorderIngredientAmount(s){
+  const cleaned = stripMarkdownFormatting(s);
+  const m = cleaned.match(/(\d[\d,.\/\s-]*\s*[a-záčďéěíňóřšťúůýž]{0,12})\s*$/i);
+  if(!m) return cleaned;
+  const amount = m[1].trim();
+  const name = cleaned.slice(0, m.index).trim();
+  if(!name || !amount) return cleaned;
+  return `${amount} ${name}`;
+}
+
 const AMOUNT_PATTERN = '(\\d+\\s+\\d+\\/\\d+|\\d+\\/\\d+|\\d+(?:[.,]\\d+)?)';
 const UNIT_RE = new RegExp(AMOUNT_PATTERN + '\\s*(cups?|šálk\\w*|tablespoons?|tbsp\\.?|teaspoons?|tsp\\.?|fl\\.?\\s?oz|fluid ounces?|pounds?|lbs?\\.?|ounces?|oz\\.?)\\b', 'gi');
 
@@ -1053,11 +1079,16 @@ function convertLineUnits(line){
 }
 
 // ---------- ingredient matching (declension-tolerant) ----------
+function isIngredientLabel(line){
+  return /^\s*\./.test(line || '');
+}
+
 function ingredientMatch(recipe, haveTokenLists){
   if(haveTokenLists.length === 0) return null;
+  const realIngredients = recipe.ingredients.filter(i => !isIngredientLabel(i));
   let matched = 0;
   const missing = [];
-  recipe.ingredients.forEach(ing => {
+  realIngredients.forEach(ing => {
     const ingTokens = tokenize(ing);
     const ingStems = ingTokens.map(stem);
     const found = haveTokenLists.some(hTokens =>
@@ -1065,7 +1096,7 @@ function ingredientMatch(recipe, haveTokenLists){
     );
     if(found) matched++; else missing.push(ing);
   });
-  return { matched, total: recipe.ingredients.length, missing };
+  return { matched, total: realIngredients.length, missing };
 }
 
 // ---------- rendering ----------
@@ -1501,13 +1532,19 @@ function renderViewModal(r){
   ensureChecked(r);
   const ingList = document.getElementById('ingList');
   function drawIngList(){
-    ingList.innerHTML = r.ingredients.map((ing, i) => `
+    ingList.innerHTML = r.ingredients.map((ing, i) => {
+      if(isIngredientLabel(ing)){
+        const label = ing.replace(/^\s*\.\s*/, '');
+        return `<li class="ing-label">${escapeHtml(label)}</li>`;
+      }
+      return `
       <li>
         <label class="ing-row ${r.ingredientsChecked[i] ? 'checked' : ''}">
           <input type="checkbox" data-idx="${i}" ${r.ingredientsChecked[i] ? 'checked' : ''}>
           <span>${escapeHtml(ing)}</span>
         </label>
-      </li>`).join('');
+      </li>`;
+    }).join('');
     ingList.querySelectorAll('input[type=checkbox]').forEach(cb => {
       cb.addEventListener('change', () => {
         const idx = parseInt(cb.dataset.idx, 10);
@@ -1628,7 +1665,7 @@ function renderEditForm(r){
     </div>
 
     <div class="field">
-      <button type="button" class="btn btn-ghost" id="btnConvertUnits">🔄 Doplnit metrické jednotky (g/ml/°C)</button>
+      <button type="button" class="btn btn-ghost" id="btnConvertUnits">🔄 Opravit formát surovin a doplnit jednotky</button>
       <div class="url-status" id="convertStatus"></div>
     </div>
 
@@ -1693,9 +1730,9 @@ function renderEditForm(r){
   function applyFetchedData(data){
     if(data.name) document.getElementById('fName').value = data.name;
     if(data.time) document.getElementById('fTime').value = data.time;
-    if(data.ingredients && data.ingredients.length) document.getElementById('fIngredients').value = data.ingredients.map(convertLineUnits).join('\n');
+    if(data.ingredients && data.ingredients.length) document.getElementById('fIngredients').value = data.ingredients.map(reorderIngredientAmount).map(convertLineUnits).join('\n');
     autoGrowTextarea(document.getElementById('fIngredients'));
-    if(data.steps && data.steps.length){ steps = data.steps.map(convertLineUnits); drawSteps(); }
+    if(data.steps && data.steps.length){ steps = data.steps.map(stripMarkdownFormatting).map(convertLineUnits); drawSteps(); }
     if(data.tagHint){
       // ignore the default vyzkoušeno/nevyzkoušeno status tag when deciding whether the
       // person already made their own category choice — that shouldn't block guessing
@@ -1736,13 +1773,14 @@ function renderEditForm(r){
     const ingEl = document.getElementById('fIngredients');
     const beforeIng = ingEl.value;
     const beforeSteps = steps.join('\n');
-    ingEl.value = beforeIng.split('\n').map(convertLineUnits).join('\n');
-    steps = steps.map(convertLineUnits);
+    ingEl.value = beforeIng.split('\n').map(reorderIngredientAmount).map(convertLineUnits).join('\n');
+    autoGrowTextarea(ingEl);
+    steps = steps.map(stripMarkdownFormatting).map(convertLineUnits);
     drawSteps();
     const changed = (ingEl.value !== beforeIng) || (steps.join('\n') !== beforeSteps);
     statusEl.textContent = changed
-      ? 'Doplněno — metrické hodnoty jsou orientační (šálek/oz podle typu suroviny).'
-      : 'Nenašla jsem žádné americké jednotky (cup, oz, °F...) k převodu.';
+      ? 'Hotovo — opravený formát a doplněné metrické jednotky, kde šlo poznat americké.'
+      : 'Nenašla jsem nic k opravě ani k převodu.';
     statusEl.className = 'url-status';
   };
 
