@@ -5,47 +5,45 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="theme-color" content="#43593F">
+<meta name="theme-color" content="#D3A292">
 <title>Kuchařka</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700;9..144,800&family=Karla:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
   :root{
-    --bg: #EDE7D6;
-    --bg-deep: #E4DCC6;
-    --paper: #FFFEFB;
-    --ink: #2B2620;
-    --ink-soft: #756B5C;
-    --line: #DCD1B7;
-    --primary: #43593F;
-    --primary-dark: #2E3F2B;
-    --primary-tint: #DCE4D2;
-    --accent: #9C4536;
-    --accent-tint: #F0DCD3;
-    --mustard: #C79A3E;
-    --shadow: rgba(43,38,32,0.16);
+    --bg: #D3A292;
+    --paper: #EDD6CC;
+    --paper-hover: #E4C4B4;
+    --ink: #233349;
+    --ink-soft: #9EAFB6;
+    --light-text: #EDD6CC;
+    --line: #A8512F;
+    --primary: #9EAFB6;
+    --primary-dark: #7C939C;
+    --primary-tint: #E7EDEE;
+    --accent: #A8512F;
+    --accent-tint: #F1DCD2;
+    --shadow: rgba(35,51,73,0.18);
 
-    --tag-sladke: #BD5F84;
-    --tag-slane: #64753A;
-    --tag-snidane: #C79A3E;
-    --tag-obed: #9C4536;
-    --tag-vyzkouseno: #3A6A57;
-    --tag-nevyzkouseno: #948A78;
-    --tag-jaro: #77A157;
-    --tag-leto: #D2A22E;
-    --tag-podzim: #B06B34;
-    --tag-zima: #4C6F8C;
+    --tag-sladke: #B5657E;
+    --tag-slane: #5B6B4F;
+    --tag-snidane: #C4772A;
+    --tag-obed: #A8512F;
+    --tag-vyzkouseno: #3D5C63;
+    --tag-nevyzkouseno: #9E8F86;
+    --tag-jaro: #7DA06A;
+    --tag-leto: #D3A292;
+    --tag-podzim: #8A4A28;
+    --tag-zima: #4A6B84;
     --tag-bezmasne: #5C8A6E;
-    --tag-dezert: #7C5A96;
+    --tag-dezert: #8C4A63;
   }
 
   *{ box-sizing: border-box; }
 
   body{
     margin:0;
-    background:
-      radial-gradient(circle at 1px 1px, rgba(43,38,32,0.06) 1px, transparent 0) 0 0/24px 24px,
-      linear-gradient(180deg, var(--bg-deep) 0%, var(--bg) 320px);
+    background: var(--bg);
     color: var(--ink);
     font-family: 'Karla', sans-serif;
     padding-bottom: 70px;
@@ -74,7 +72,7 @@
     border-radius: 14px;
     background: var(--primary);
     display:flex; align-items:center; justify-content:center;
-    box-shadow: 0 6px 14px rgba(67,89,63,0.35);
+    box-shadow: 0 6px 14px rgba(35,51,73,0.35);
     transform: rotate(-4deg);
   }
   .brand .icon svg{ width:28px; height:28px; }
@@ -84,7 +82,7 @@
     margin: 0;
     line-height: 1;
     letter-spacing: -0.015em;
-    color: var(--primary-dark);
+    color: var(--ink);
   }
   header p{
     margin: 7px 0 0;
@@ -104,11 +102,11 @@
     transition: transform .12s ease, background .15s ease, box-shadow .15s ease;
   }
   .btn:active{ transform: scale(0.96); }
-  .btn-primary{ background: var(--primary); color: #FBF7EC; box-shadow: 0 4px 12px rgba(67,89,63,0.3); }
-  .btn-primary:hover{ background: var(--primary-dark); }
-  .btn-ghost{ background: transparent; color: var(--ink); border: 1.5px solid var(--line); border-radius: 7px; }
-  .btn-ghost:hover{ border-color: var(--ink-soft); background: rgba(43,38,32,0.03); }
-  .btn-accent{ background: var(--accent); color: #FBF7EC; }
+  .btn-primary{ background: var(--paper); color: var(--ink); box-shadow: 0 4px 12px rgba(35,51,73,0.25); }
+  .btn-primary:hover{ background: var(--paper-hover); }
+  .btn-ghost{ background: var(--paper); color: var(--ink); border: 1.5px solid var(--line); border-radius: 7px; }
+  .btn-ghost:hover{ background: var(--paper-hover); }
+  .btn-accent{ background: var(--paper); color: var(--ink); border: 1.5px solid var(--accent); }
 
   /* ---------- Toolbar ---------- */
   .toolbar{
@@ -161,7 +159,7 @@
   .chip:hover{ border-color: var(--ink-soft); }
   .chip .dot{ width:8px; height:8px; border-radius:50%; }
   .chip.active{
-    color: #fff;
+    color: var(--light-text);
     border-color: transparent;
     box-shadow: 0 2px 6px rgba(0,0,0,0.18);
   }
@@ -172,7 +170,7 @@
     border-radius: 12px;
     padding: 16px 18px;
   }
-  .pantry-head{ font-weight: 700; font-size: 14px; color: var(--primary-dark); margin-bottom: 10px; }
+  .pantry-head{ font-weight: 700; font-size: 14px; color: var(--ink); margin-bottom: 10px; }
   .pantry-add-row{ display:flex; gap: 8px; margin-bottom: 10px; }
   .pantry-add-row input{ flex: 1; }
   .pantry-list{ display:flex; flex-wrap: wrap; gap: 8px; margin-bottom: 12px; }
@@ -230,7 +228,7 @@
     line-height: 1.2;
     padding-bottom: 9px;
     border-bottom: 1px dashed var(--line);
-    color: var(--primary-dark);
+    color: var(--ink);
   }
   .card .meta{ display:flex; align-items:center; justify-content: space-between; margin-bottom: 10px; }
   .card .time{ font-size: 13px; color: var(--ink-soft); }
@@ -239,12 +237,12 @@
     font-size: 11px;
     font-weight: 700;
     letter-spacing: .01em;
-    color: #fff;
+    color: var(--light-text);
     padding: 3px 9px;
     border-radius: 10px;
   }
-  .card .match{ font-size: 12.5px; color: var(--primary); font-weight: 700; margin-bottom: 8px; }
-  .card .match.partial{ color: var(--mustard); }
+  .card .match{ font-size: 12.5px; color: var(--ink); font-weight: 700; margin-bottom: 8px; }
+  .card .match.partial{ color: var(--accent); }
 
   .empty-state{
     max-width: 1000px;
@@ -266,7 +264,7 @@
   .star svg{ position:absolute; top:0; left:0; width:100%; height:100%; }
   .star .bg-star path{ fill: var(--line); }
   .star .fg-wrap{ position:absolute; top:0; left:0; height:100%; overflow:hidden; }
-  .star .fg-wrap svg path{ fill: var(--mustard); }
+  .star .fg-wrap svg path{ fill: var(--accent); }
   .star .hit{ position:absolute; top:0; height:100%; width:50%; cursor:pointer; }
   .star .hit.left{ left:0; }
   .star .hit.right{ right:0; }
@@ -274,7 +272,7 @@
 
   /* ---------- Modal ---------- */
   .overlay{
-    position: fixed; inset:0; background: rgba(43,38,32,0.5);
+    position: fixed; inset:0; background: rgba(35,51,73,0.5);
     display:none; align-items:flex-start; justify-content:center;
     padding: 40px 16px; overflow-y:auto; z-index: 50;
   }
@@ -286,16 +284,16 @@
     overflow: hidden;
     box-shadow: 0 24px 60px rgba(0,0,0,0.3);
   }
-  .modal-strip{ height:7px; background: linear-gradient(90deg, var(--primary), var(--mustard)); }
+  .modal-strip{ height:7px; background: linear-gradient(90deg, var(--primary), var(--accent)); }
   .modal-inner{ padding: 26px 30px 28px; }
   .modal-head{ display:flex; justify-content: space-between; align-items:flex-start; gap: 12px; margin-bottom: 6px;}
-  .modal h2{ margin: 0; font-size: 27px; font-weight: 700; color: var(--primary-dark); }
+  .modal h2{ margin: 0; font-size: 27px; font-weight: 700; color: var(--ink); }
   .icon-btn{
     background: none; border: none; cursor: pointer; color: var(--ink-soft);
     font-size: 18px; line-height: 1; padding: 4px;
     border-radius: 6px;
   }
-  .icon-btn:hover{ color: var(--ink); background: rgba(43,38,32,0.06); }
+  .icon-btn:hover{ color: var(--ink); background: rgba(35,51,73,0.08); }
   .icon-btn svg{ width: 18px; height: 18px; display: block; }
   .field{ margin-bottom: 17px; }
   .field label{ display:block; font-size: 12.5px; font-weight: 700; color: var(--ink-soft); margin-bottom: 6px; text-transform: uppercase; letter-spacing: .03em; }
@@ -313,38 +311,27 @@
   .ing-row.checked span{ color: var(--ink-soft); text-decoration: line-through; }
   .ing-label{
     font-weight: 700; font-family: 'Fraunces', serif; font-size: 15px;
-    color: var(--primary-dark); margin: 12px 0 4px; padding-top: 6px;
+    color: var(--ink); margin: 12px 0 4px; padding-top: 6px;
     border-top: 1px dashed var(--line);
   }
   .ing-label:first-child{ margin-top: 0; padding-top: 0; border-top: none; }
   .ing-head{ display:flex; align-items:center; justify-content: space-between; margin-bottom: 8px; }
   .ing-head button{ background:none; border:none; color: var(--ink-soft); font-size: 12px; text-decoration: underline; cursor: pointer; padding:0; }
 
-  .steps-view{ list-style:none; margin:0; padding:0; counter-reset: stepnum; }
-  .steps-view li{ position:relative; padding-left:40px; margin-bottom:16px; line-height:1.6; counter-increment: stepnum; }
-  .steps-view li::before{
-    content: counter(stepnum);
-    position:absolute; left:0; top:-1px;
-    width:27px; height:27px; border-radius:50%;
-    background: var(--primary); color:#fff;
+  .steps-view{ margin:0; padding:0; }
+  .step-line{ display:flex; gap:12px; align-items:flex-start; margin-bottom:14px; line-height:1.6; }
+  .step-line-num{
+    flex:0 0 27px; height:27px; margin-top:1px; border-radius:50%;
+    background: var(--primary); color: var(--ink);
     font-family:'Fraunces',serif; font-weight:700; font-size:13px;
     display:flex; align-items:center; justify-content:center;
   }
-
-  .steps-list{ display:flex; flex-direction:column; gap:10px; margin-bottom: 10px; }
-  .step-row{ display:flex; gap:9px; align-items:flex-start; }
-  .step-num{
-    flex:0 0 27px; height:27px; margin-top:6px; border-radius:50%;
-    background: var(--primary); color:#fff; font-size:12.5px; font-weight:700;
-    display:flex; align-items:center; justify-content:center;
-    font-family:'Fraunces',serif;
+  .step-label{
+    font-weight: 700; font-family: 'Fraunces', serif; font-size: 16px;
+    color: var(--ink); margin: 18px 0 8px; padding-top: 10px;
+    border-top: 1px dashed var(--line);
   }
-  .step-row textarea{ flex:1; min-height:58px; }
-  .step-actions{ display:flex; flex-direction:column; gap:3px; padding-top:4px; }
-  .step-actions button{ background:none;border:none;color:var(--ink-soft);cursor:pointer;font-size:14px;padding:1px 5px; border-radius:4px; }
-  .step-actions button:hover{ color:var(--ink); background: rgba(43,38,32,0.06); }
-  .step-actions button:disabled{ opacity:0.25; cursor:default; }
-  .step-actions button:disabled:hover{ background:none; }
+  .step-label:first-child{ margin-top: 0; padding-top: 0; border-top: none; }
 
   .url-row{ display:flex; gap:8px; }
   .url-row input{ flex:1; }
@@ -359,7 +346,7 @@
   .modal-actions .left, .modal-actions .right{ display:flex; gap:10px; }
 
   .wakelock-row{ margin-bottom: 20px; }
-  #btnWakeLock.active{ background: var(--primary); color: #fff; border-color: transparent; }
+  #btnWakeLock.active{ background: var(--paper); color: var(--ink); border-color: var(--accent); }
 
   footer{ max-width: 1000px; margin: 44px auto 0; padding: 0 24px; text-align:center; }
   footer button{ background:none; border:none; color: var(--ink-soft); font-size:12.5px; text-decoration:underline; cursor:pointer; }
@@ -372,11 +359,11 @@
     bottom: calc(20px + env(safe-area-inset-bottom));
     width: 46px; height: 46px;
     border-radius: 50%;
-    background: var(--primary);
-    color: #fff;
-    border: none;
+    background: var(--paper);
+    color: var(--ink);
+    border: 1.5px solid var(--accent);
     font-size: 20px;
-    box-shadow: 0 4px 14px rgba(0,0,0,0.28);
+    box-shadow: 0 4px 14px rgba(35,51,73,0.3);
     cursor: pointer;
     display: none;
     align-items: center;
@@ -389,7 +376,7 @@
 
   /* ---------- Home ---------- */
   .home-hero{ max-width: 1000px; margin: 0 auto; padding: 34px 24px 4px; }
-  .home-hero h2{ font-size: 30px; margin: 4px 0 16px; color: var(--primary-dark); }
+  .home-hero h2{ font-size: 30px; margin: 4px 0 16px; color: var(--ink); }
   .home-hero .chips{ margin-bottom: 18px; }
 
   /* ---------- Converter ---------- */
@@ -401,7 +388,7 @@
     flex: 1 1 170px; font-family:'Karla',sans-serif; font-size: 14px;
     padding: 9px 11px; border-radius: 7px; border: 1.5px solid var(--line); background: var(--paper); color: var(--ink);
   }
-  .conv-row strong{ font-family:'Fraunces',serif; font-size: 18px; color: var(--primary-dark); min-width: 54px; }
+  .conv-row strong{ font-family:'Fraunces',serif; font-size: 18px; color: var(--ink); min-width: 54px; }
   .conv-note{ color: var(--ink-soft); font-size: 13px; margin: -8px 0 20px; }
 
   @media (max-width: 560px){
@@ -428,7 +415,7 @@
 <header>
   <div class="brand">
     <div class="icon">
-      <svg viewBox="0 0 24 24" fill="none" stroke="#FBF7EC" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+      <svg viewBox="0 0 24 24" fill="none" style="stroke:var(--ink)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
         <path d="M8 2c0 3 1.5 4 1.5 7a3.5 3.5 0 0 1-7 0c0-3 1.5-4 1.5-7"/>
         <path d="M6 9v13"/>
         <path d="M15 2v8a3 3 0 0 0 3 3v9"/>
@@ -485,7 +472,7 @@
 
 <div class="grid" id="grid"></div>
 <div class="empty-state" id="emptyState" style="display:none;">
-  <svg viewBox="0 0 100 100" fill="none" stroke="#756B5C" stroke-width="2.2" stroke-linecap="round">
+  <svg viewBox="0 0 100 100" fill="none" style="stroke:var(--ink-soft)" stroke-width="2.2" stroke-linecap="round">
     <ellipse cx="50" cy="72" rx="34" ry="9"/>
     <path d="M18 55a32 22 0 0 0 64 0"/>
     <path d="M50 20v22M40 26l10-8 10 8"/>
@@ -557,11 +544,29 @@ function normalize(s){
 }
 
 function tokenize(s){
-  return normalize(s).split(/[^a-z0-9]+/).filter(Boolean);
+  return normalize(s).split(/[^a-z0-9]+/).filter(Boolean).map(canonicalWord);
 }
 
-// crude Czech-aware stemmer: trims typical short case endings so
-// declined forms of the same word ("mouka"/"mouky"/"mouce") line up
+// a handful of common Czech kitchen words whose declension isn't just a
+// suffix change (e.g. sůl→soli), so no amount of suffix-trimming catches them
+const IRREGULAR_WORD_MAP = {
+  'soli': 'sul',
+  'sole': 'sul',
+};
+function canonicalWord(w){ return IRREGULAR_WORD_MAP[w] || w; }
+
+// declension-tolerant word match: compares how much of the shorter word's
+// start matches the longer one, rather than cutting both to a fixed length —
+// handles endings of very different lengths (kuře/kuřeti, cibule/cibulí, …)
+function wordsMatch(a, b){
+  if(a === b) return true;
+  const shorter = Math.min(a.length, b.length);
+  if(shorter <= 3) return false; // too short to fuzzy-match safely
+  let common = 0;
+  while(common < shorter && a[common] === b[common]) common++;
+  return common >= shorter - 2 && common >= 3;
+}
+
 function stem(word){
   if(word.length <= 3) return word;
   const cut = Math.max(4, word.length - 2);
@@ -824,6 +829,33 @@ function stripBullet(s){
   return s.replace(/^(?:[\*\-•]\s*)+(\[[ xX]\]\s*)?/, '').trim();
 }
 
+// filters out lines that sneak into a section but aren't real recipe content:
+// markdown images, table rows (nutrition tables etc.), and common UI chrome text
+const NOISE_PHRASES = [
+  'nahlasit chybu', 'zobrazit vsechny hodnoty', 'hodnoty jsou pribl',
+  'mensi porce', 'vetsi porce', 'pridat do', 'ulozit recept',
+  'sdilet recept', 'vytisknout', 'komentare', 'napsat komentar',
+];
+function isNoiseLine(line){
+  const t = line.trim();
+  if(!t) return true;
+  if(/^!\[.*\]\(.*\)$/.test(t)) return true;   // markdown image
+  if(/^\|/.test(t)) return true;                // markdown table row/divider
+  const n = normalize(t);
+  if(NOISE_PHRASES.some(p => n.includes(p))) return true;
+  return false;
+}
+
+// some sites (portion-slider widgets) render each ingredient's amount twice,
+// e.g. "500 g 500 g mascarpone" or, when digits collide, "55 vajec" (5+5)
+function collapseDuplicateAmount(line){
+  let m = line.match(/^(\S.*?)\s+\1\s+(.+)$/);
+  if(m) return `${m[1]} ${m[2]}`;
+  m = line.match(/^(\d{1,3})\1\s+(.+)$/);
+  if(m) return `${m[1]} ${m[2]}`;
+  return line;
+}
+
 function extractTimeMinutes(lines, fullText){
   // prefer a "45\nCELKOVÝ" / "45 min\nTOTAL" value+label pair when present
   for(let i = 0; i < lines.length - 1; i++){
@@ -888,7 +920,9 @@ function heuristicParseText(text){
     const end = insIdx !== -1 ? insIdx : sectionEnd(ingIdx + 1);
     ingredients = lines.slice(ingIdx + 1, end)
       .map(stripBullet)
-      .filter(l => l && l.length < 140 && !isMarkdownHeading(l));
+      .filter(l => l && l.length < 140 && !isMarkdownHeading(l) && !isNoiseLine(l))
+      .map(collapseDuplicateAmount)
+      .map(reorderIngredientAmount);
   }
 
   let steps = [];
@@ -896,7 +930,8 @@ function heuristicParseText(text){
     const end = sectionEnd(insIdx + 1);
     steps = lines.slice(insIdx + 1, end)
       .map(stripBullet)
-      .filter(l => l && !isMarkdownHeading(l))
+      .filter(l => l && !isMarkdownHeading(l) && !isNoiseLine(l))
+      .map(stripMarkdownFormatting)
       .map(cleanStep)
       .filter(Boolean);
   }
@@ -918,33 +953,36 @@ function heuristicParseText(text){
   };
 }
 
-async function fetchHtml(url){
-  try{
-    const res = await fetch(url, { mode: 'cors' });
-    if(res.ok) return await res.text();
-  }catch(e){ /* fall through to proxies */ }
+function fetchWithTimeout(url, options, ms){
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), ms);
+  return fetch(url, { ...options, signal: controller.signal }).finally(() => clearTimeout(timer));
+}
 
-  const proxies = [
-    'https://api.allorigins.win/raw?url=' + encodeURIComponent(url),
-    'https://api.codetabs.com/v1/proxy?quest=' + encodeURIComponent(url),
+async function tryFetchSource(url, options, ms){
+  const res = await fetchWithTimeout(url, options, ms);
+  if(!res.ok) throw new Error('http ' + res.status);
+  const text = await res.text();
+  if(!text || text.length < 200) throw new Error('prázdná odpověď');
+  return text;
+}
+
+async function fetchHtml(url){
+  const attempts = [
+    tryFetchSource(url, { mode: 'cors' }, 8000),
+    tryFetchSource('https://api.allorigins.win/raw?url=' + encodeURIComponent(url), {}, 8000),
+    tryFetchSource('https://api.codetabs.com/v1/proxy?quest=' + encodeURIComponent(url), {}, 8000),
   ];
-  let lastErr;
-  for(const proxyUrl of proxies){
-    try{
-      const res = await fetch(proxyUrl);
-      if(res.ok){
-        const text = await res.text();
-        if(text && text.length > 200) return text;
-      }
-    }catch(e){
-      lastErr = e;
-    }
+  try{
+    return await Promise.any(attempts);
+  }catch(aggregateError){
+    const reasons = (aggregateError.errors || []).map(e => e.message).join(' / ');
+    throw new Error('stažení stránky selhalo' + (reasons ? ': ' + reasons : ''));
   }
-  throw new Error('stažení stránky selhalo' + (lastErr ? ': ' + lastErr.message : ''));
 }
 
 async function fetchViaReader(url){
-  const res = await fetch('https://r.jina.ai/' + url);
+  const res = await fetchWithTimeout('https://r.jina.ai/' + url, {}, 12000);
   if(!res.ok) throw new Error('reader http ' + res.status);
   const text = await res.text();
   if(!text || text.length < 100) throw new Error('reader prázdná odpověď');
@@ -995,8 +1033,8 @@ const MEAT_WORDS = [
 ];
 
 function hasMeatIngredient(ingredients){
-  const stems = ingredients.flatMap(tokenize).map(stem);
-  return MEAT_WORDS.some(w => stems.includes(stem(w)));
+  const tokens = ingredients.flatMap(tokenize);
+  return MEAT_WORDS.some(w => tokens.some(t => wordsMatch(w, t)));
 }
 
 const CUP_DENSITY_KEYWORDS = [
@@ -1012,9 +1050,8 @@ const CUP_DENSITY_KEYWORDS = [
 ];
 
 function findCupDensity(tokens){
-  const stems = tokens.map(stem);
   for(const entry of CUP_DENSITY_KEYWORDS){
-    if(stems.includes(stem(entry.word))) return entry.gramsPerCup;
+    if(tokens.some(t => wordsMatch(entry.word, t))) return entry.gramsPerCup;
   }
   return null;
 }
@@ -1090,9 +1127,8 @@ function ingredientMatch(recipe, haveTokenLists){
   const missing = [];
   realIngredients.forEach(ing => {
     const ingTokens = tokenize(ing);
-    const ingStems = ingTokens.map(stem);
     const found = haveTokenLists.some(hTokens =>
-      hTokens.some(ht => ingStems.includes(stem(ht)))
+      hTokens.some(ht => ingTokens.some(it => wordsMatch(ht, it)))
     );
     if(found) matched++; else missing.push(ing);
   });
@@ -1263,7 +1299,7 @@ function renderQuickFilters(){
   QUICK_FILTERS.forEach(qf => {
     const chip = document.createElement('div');
     chip.className = 'chip' + (quickFilterState.has(qf.id) ? ' active' : '');
-    if(quickFilterState.has(qf.id)) chip.style.background = 'var(--primary)';
+    if(quickFilterState.has(qf.id)) chip.style.background = 'var(--accent)';
     chip.textContent = qf.label;
     chip.onclick = () => {
       if(quickFilterState.has(qf.id)) quickFilterState.delete(qf.id);
@@ -1357,6 +1393,22 @@ function escapeHtml(s){
   const d = document.createElement('div');
   d.textContent = s || '';
   return d.innerHTML;
+}
+
+function renderStepsHtml(steps){
+  let html = '';
+  let counter = 0;
+  steps.forEach(s => {
+    if(isIngredientLabel(s)){
+      const label = s.replace(/^\s*\.\s*/, '');
+      html += `<div class="step-label">${escapeHtml(label)}</div>`;
+      counter = 0;
+    } else {
+      counter++;
+      html += `<div class="step-line"><span class="step-line-num">${counter}.</span><span>${escapeHtml(s)}</span></div>`;
+    }
+  });
+  return html;
 }
 
 function autoGrowTextarea(el){
@@ -1516,7 +1568,7 @@ function renderViewModal(r){
 
     <div class="view-block">
       <h4>Postup</h4>
-      <ol class="steps-view">${(r.steps||[]).map(s => `<li>${escapeHtml(s)}</li>`).join('')}</ol>
+      <div class="steps-view">${renderStepsHtml(r.steps || [])}</div>
     </div>
 
     <div class="field">
@@ -1597,7 +1649,6 @@ function renderEditForm(r){
   const draft = r ? JSON.parse(JSON.stringify(r)) : {
     id: uid(), name: '', tags: ['nevyzkouseno'], time: '', ingredients: [], ingredientsChecked: [], steps: [], url: '', note: '', rating: 0
   };
-  let steps = draft.steps && draft.steps.length ? draft.steps.slice() : [''];
 
   modalContent.innerHTML = `
     <div class="modal-head">
@@ -1639,14 +1690,13 @@ function renderEditForm(r){
     </div>
 
     <div class="field">
-      <label>Suroviny (jedna na řádek)</label>
-      <textarea id="fIngredients" placeholder="250 g mouky&#10;2 vejce&#10;…">${escapeHtml(draft.ingredients.join('\n'))}</textarea>
+      <label>Suroviny (jedna na řádek, řádek začínající tečkou = nadpis části)</label>
+      <textarea id="fIngredients" placeholder="250 g mouky&#10;2 vejce&#10;.Náplň&#10;150 g brynzy&#10;…">${escapeHtml(draft.ingredients.join('\n'))}</textarea>
     </div>
 
     <div class="field">
-      <label>Postup (kroky)</label>
-      <div class="steps-list" id="stepsList"></div>
-      <button type="button" class="btn btn-ghost" id="btnAddStep">+ Přidat krok</button>
+      <label>Postup (jeden krok na řádek, řádek začínající tečkou = nadpis části)</label>
+      <textarea id="fSteps" placeholder="Rozehřejte troubu…&#10;Smíchejte suroviny…&#10;.Náplň&#10;Vyšlehejte krém…">${escapeHtml(draft.steps.join('\n'))}</textarea>
     </div>
 
     <div class="field">
@@ -1680,39 +1730,13 @@ function renderEditForm(r){
     </div>
   `;
 
-  const stepsWrap = document.getElementById('stepsList');
-  function drawSteps(){
-    stepsWrap.innerHTML = steps.map((s,i) => `
-      <div class="step-row">
-        <div class="step-num">${i+1}</div>
-        <textarea data-i="${i}" placeholder="Popiš krok…">${escapeHtml(s)}</textarea>
-        <div class="step-actions">
-          <button type="button" data-act="up" data-i="${i}" ${i===0?'disabled':''} title="Posunout nahoru">↑</button>
-          <button type="button" data-act="down" data-i="${i}" ${i===steps.length-1?'disabled':''} title="Posunout dolů">↓</button>
-          <button type="button" data-act="del" data-i="${i}" title="Smazat krok">✕</button>
-        </div>
-      </div>
-    `).join('');
-    stepsWrap.querySelectorAll('textarea').forEach(t => {
-      t.addEventListener('input', () => { steps[parseInt(t.dataset.i,10)] = t.value; });
-    });
-    stepsWrap.querySelectorAll('button[data-act]').forEach(btn => {
-      btn.onclick = () => {
-        const i = parseInt(btn.dataset.i,10);
-        const act = btn.dataset.act;
-        if(act === 'up' && i>0){ const tmp=steps[i-1]; steps[i-1]=steps[i]; steps[i]=tmp; }
-        if(act === 'down' && i<steps.length-1){ const tmp=steps[i+1]; steps[i+1]=steps[i]; steps[i]=tmp; }
-        if(act === 'del'){ steps.splice(i,1); if(!steps.length) steps.push(''); }
-        drawSteps();
-      };
-    });
-  }
-  drawSteps();
-  document.getElementById('btnAddStep').onclick = () => { steps.push(''); drawSteps(); };
-
   const ingFieldEl = document.getElementById('fIngredients');
   autoGrowTextarea(ingFieldEl);
   ingFieldEl.addEventListener('input', () => autoGrowTextarea(ingFieldEl));
+
+  const stepsFieldEl = document.getElementById('fSteps');
+  autoGrowTextarea(stepsFieldEl);
+  stepsFieldEl.addEventListener('input', () => autoGrowTextarea(stepsFieldEl));
 
   const starsWrap = document.getElementById('editStars');
   function drawEditStars(){
@@ -1732,7 +1756,10 @@ function renderEditForm(r){
     if(data.time) document.getElementById('fTime').value = data.time;
     if(data.ingredients && data.ingredients.length) document.getElementById('fIngredients').value = data.ingredients.map(reorderIngredientAmount).map(convertLineUnits).join('\n');
     autoGrowTextarea(document.getElementById('fIngredients'));
-    if(data.steps && data.steps.length){ steps = data.steps.map(stripMarkdownFormatting).map(convertLineUnits); drawSteps(); }
+    if(data.steps && data.steps.length){
+      document.getElementById('fSteps').value = data.steps.map(stripMarkdownFormatting).map(convertLineUnits).join('\n');
+      autoGrowTextarea(document.getElementById('fSteps'));
+    }
     if(data.tagHint){
       // ignore the default vyzkoušeno/nevyzkoušeno status tag when deciding whether the
       // person already made their own category choice — that shouldn't block guessing
@@ -1771,13 +1798,14 @@ function renderEditForm(r){
   document.getElementById('btnConvertUnits').onclick = () => {
     const statusEl = document.getElementById('convertStatus');
     const ingEl = document.getElementById('fIngredients');
+    const stepsEl = document.getElementById('fSteps');
     const beforeIng = ingEl.value;
-    const beforeSteps = steps.join('\n');
+    const beforeSteps = stepsEl.value;
     ingEl.value = beforeIng.split('\n').map(reorderIngredientAmount).map(convertLineUnits).join('\n');
     autoGrowTextarea(ingEl);
-    steps = steps.map(stripMarkdownFormatting).map(convertLineUnits);
-    drawSteps();
-    const changed = (ingEl.value !== beforeIng) || (steps.join('\n') !== beforeSteps);
+    stepsEl.value = beforeSteps.split('\n').map(stripMarkdownFormatting).map(convertLineUnits).join('\n');
+    autoGrowTextarea(stepsEl);
+    const changed = (ingEl.value !== beforeIng) || (stepsEl.value !== beforeSteps);
     statusEl.textContent = changed
       ? 'Hotovo — opravený formát a doplněné metrické jednotky, kde šlo poznat americké.'
       : 'Nenašla jsem nic k opravě ani k převodu.';
@@ -1788,8 +1816,9 @@ function renderEditForm(r){
     const statusEl = document.getElementById('translateStatus');
     const nameVal = document.getElementById('fName').value;
     const ingVal = document.getElementById('fIngredients').value.split('\n').map(s=>s.trim()).filter(Boolean);
-    const stepsVal = steps.map(s => s.trim());
-    if(!nameVal.trim() && !ingVal.length && !stepsVal.some(s=>s)){
+    const stepsEl = document.getElementById('fSteps');
+    const stepsVal = stepsEl.value.split('\n').map(s => s.trim()).filter(Boolean);
+    if(!nameVal.trim() && !ingVal.length && !stepsVal.length){
       statusEl.textContent = 'Nejdřív vyplň název, suroviny nebo postup.';
       statusEl.className = 'url-status error';
       return;
@@ -1800,8 +1829,8 @@ function renderEditForm(r){
       const result = await translateRecipeData({ name: nameVal, ingredients: ingVal, steps: stepsVal });
       document.getElementById('fName').value = result.name;
       document.getElementById('fIngredients').value = result.ingredients.join('\n');
-      steps = result.steps.length ? result.steps : [''];
-      drawSteps();
+      stepsEl.value = result.steps.join('\n');
+      autoGrowTextarea(stepsEl);
       statusEl.textContent = 'Přeloženo — zkontroluj prosím výsledek.';
       statusEl.className = 'url-status';
     }catch(e){
@@ -1910,7 +1939,7 @@ function renderEditForm(r){
     draft.time = parseInt(document.getElementById('fTime').value, 10) || 0;
     draft.ingredients = document.getElementById('fIngredients').value.split('\n').map(s=>s.trim()).filter(Boolean);
     ensureChecked(draft);
-    draft.steps = steps.map(s => s.trim()).filter(Boolean);
+    draft.steps = document.getElementById('fSteps').value.split('\n').map(s=>s.trim()).filter(Boolean);
     draft.url = document.getElementById('fUrl').value.trim();
     draft.note = document.getElementById('fNote').value.trim();
 
