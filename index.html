@@ -5,24 +5,24 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="theme-color" content="#D3A292">
+<meta name="theme-color" content="#43593F">
 <title>Kuchařka</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700;9..144,800&family=Karla:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
   :root{
-    --bg: #D3A292;
-    --paper: #EDD6CC;
-    --paper-hover: #E4C4B4;
+    --bg: #EDD6CC;
+    --bg-deep: #D3A292;
+    --paper: #FCF6F2;
     --ink: #233349;
-    --ink-soft: #9EAFB6;
-    --light-text: #EDD6CC;
-    --line: #A8512F;
-    --primary: #9EAFB6;
-    --primary-dark: #7C939C;
-    --primary-tint: #E7EDEE;
+    --ink-soft: #5C7481;
+    --line: #DDBFAE;
+    --primary: #233349;
+    --primary-dark: #16212F;
+    --primary-tint: #D7DEE3;
     --accent: #A8512F;
     --accent-tint: #F1DCD2;
+    --mustard: #C4772A;
     --shadow: rgba(35,51,73,0.18);
 
     --tag-sladke: #B5657E;
@@ -43,7 +43,9 @@
 
   body{
     margin:0;
-    background: var(--bg);
+    background:
+      radial-gradient(circle at 1px 1px, rgba(43,38,32,0.06) 1px, transparent 0) 0 0/24px 24px,
+      linear-gradient(180deg, var(--bg-deep) 0%, var(--bg) 320px);
     color: var(--ink);
     font-family: 'Karla', sans-serif;
     padding-bottom: 70px;
@@ -82,7 +84,7 @@
     margin: 0;
     line-height: 1;
     letter-spacing: -0.015em;
-    color: var(--ink);
+    color: var(--primary-dark);
   }
   header p{
     margin: 7px 0 0;
@@ -102,11 +104,11 @@
     transition: transform .12s ease, background .15s ease, box-shadow .15s ease;
   }
   .btn:active{ transform: scale(0.96); }
-  .btn-primary{ background: var(--paper); color: var(--ink); box-shadow: 0 4px 12px rgba(35,51,73,0.25); }
-  .btn-primary:hover{ background: var(--paper-hover); }
-  .btn-ghost{ background: var(--paper); color: var(--ink); border: 1.5px solid var(--line); border-radius: 7px; }
-  .btn-ghost:hover{ background: var(--paper-hover); }
-  .btn-accent{ background: var(--paper); color: var(--ink); border: 1.5px solid var(--accent); }
+  .btn-primary{ background: var(--primary); color: #FBF7EC; box-shadow: 0 4px 12px rgba(35,51,73,0.35); }
+  .btn-primary:hover{ background: var(--primary-dark); }
+  .btn-ghost{ background: transparent; color: var(--ink); border: 1.5px solid var(--line); border-radius: 7px; }
+  .btn-ghost:hover{ border-color: var(--ink-soft); background: rgba(43,38,32,0.03); }
+  .btn-accent{ background: var(--accent); color: #FBF7EC; }
 
   /* ---------- Toolbar ---------- */
   .toolbar{
@@ -159,7 +161,7 @@
   .chip:hover{ border-color: var(--ink-soft); }
   .chip .dot{ width:8px; height:8px; border-radius:50%; }
   .chip.active{
-    color: var(--light-text);
+    color: #fff;
     border-color: transparent;
     box-shadow: 0 2px 6px rgba(0,0,0,0.18);
   }
@@ -170,7 +172,7 @@
     border-radius: 12px;
     padding: 16px 18px;
   }
-  .pantry-head{ font-weight: 700; font-size: 14px; color: var(--ink); margin-bottom: 10px; }
+  .pantry-head{ font-weight: 700; font-size: 14px; color: var(--primary-dark); margin-bottom: 10px; }
   .pantry-add-row{ display:flex; gap: 8px; margin-bottom: 10px; }
   .pantry-add-row input{ flex: 1; }
   .pantry-list{ display:flex; flex-wrap: wrap; gap: 8px; margin-bottom: 12px; }
@@ -228,7 +230,7 @@
     line-height: 1.2;
     padding-bottom: 9px;
     border-bottom: 1px dashed var(--line);
-    color: var(--ink);
+    color: var(--primary-dark);
   }
   .card .meta{ display:flex; align-items:center; justify-content: space-between; margin-bottom: 10px; }
   .card .time{ font-size: 13px; color: var(--ink-soft); }
@@ -237,12 +239,12 @@
     font-size: 11px;
     font-weight: 700;
     letter-spacing: .01em;
-    color: var(--light-text);
+    color: #fff;
     padding: 3px 9px;
     border-radius: 10px;
   }
-  .card .match{ font-size: 12.5px; color: var(--ink); font-weight: 700; margin-bottom: 8px; }
-  .card .match.partial{ color: var(--accent); }
+  .card .match{ font-size: 12.5px; color: var(--primary); font-weight: 700; margin-bottom: 8px; }
+  .card .match.partial{ color: var(--mustard); }
 
   .empty-state{
     max-width: 1000px;
@@ -264,7 +266,7 @@
   .star svg{ position:absolute; top:0; left:0; width:100%; height:100%; }
   .star .bg-star path{ fill: var(--line); }
   .star .fg-wrap{ position:absolute; top:0; left:0; height:100%; overflow:hidden; }
-  .star .fg-wrap svg path{ fill: var(--accent); }
+  .star .fg-wrap svg path{ fill: var(--mustard); }
   .star .hit{ position:absolute; top:0; height:100%; width:50%; cursor:pointer; }
   .star .hit.left{ left:0; }
   .star .hit.right{ right:0; }
@@ -272,7 +274,7 @@
 
   /* ---------- Modal ---------- */
   .overlay{
-    position: fixed; inset:0; background: rgba(35,51,73,0.5);
+    position: fixed; inset:0; background: rgba(43,38,32,0.5);
     display:none; align-items:flex-start; justify-content:center;
     padding: 40px 16px; overflow-y:auto; z-index: 50;
   }
@@ -284,16 +286,16 @@
     overflow: hidden;
     box-shadow: 0 24px 60px rgba(0,0,0,0.3);
   }
-  .modal-strip{ height:7px; background: linear-gradient(90deg, var(--primary), var(--accent)); }
+  .modal-strip{ height:7px; background: linear-gradient(90deg, var(--primary), var(--mustard)); }
   .modal-inner{ padding: 26px 30px 28px; }
   .modal-head{ display:flex; justify-content: space-between; align-items:flex-start; gap: 12px; margin-bottom: 6px;}
-  .modal h2{ margin: 0; font-size: 27px; font-weight: 700; color: var(--ink); }
+  .modal h2{ margin: 0; font-size: 27px; font-weight: 700; color: var(--primary-dark); }
   .icon-btn{
     background: none; border: none; cursor: pointer; color: var(--ink-soft);
     font-size: 18px; line-height: 1; padding: 4px;
     border-radius: 6px;
   }
-  .icon-btn:hover{ color: var(--ink); background: rgba(35,51,73,0.08); }
+  .icon-btn:hover{ color: var(--ink); background: rgba(43,38,32,0.06); }
   .icon-btn svg{ width: 18px; height: 18px; display: block; }
   .field{ margin-bottom: 17px; }
   .field label{ display:block; font-size: 12.5px; font-weight: 700; color: var(--ink-soft); margin-bottom: 6px; text-transform: uppercase; letter-spacing: .03em; }
@@ -311,7 +313,7 @@
   .ing-row.checked span{ color: var(--ink-soft); text-decoration: line-through; }
   .ing-label{
     font-weight: 700; font-family: 'Fraunces', serif; font-size: 15px;
-    color: var(--ink); margin: 12px 0 4px; padding-top: 6px;
+    color: var(--primary-dark); margin: 12px 0 4px; padding-top: 6px;
     border-top: 1px dashed var(--line);
   }
   .ing-label:first-child{ margin-top: 0; padding-top: 0; border-top: none; }
@@ -322,13 +324,13 @@
   .step-line{ display:flex; gap:12px; align-items:flex-start; margin-bottom:14px; line-height:1.6; }
   .step-line-num{
     flex:0 0 27px; height:27px; margin-top:1px; border-radius:50%;
-    background: var(--primary); color: var(--ink);
+    background: var(--primary); color:#fff;
     font-family:'Fraunces',serif; font-weight:700; font-size:13px;
     display:flex; align-items:center; justify-content:center;
   }
   .step-label{
     font-weight: 700; font-family: 'Fraunces', serif; font-size: 16px;
-    color: var(--ink); margin: 18px 0 8px; padding-top: 10px;
+    color: var(--primary-dark); margin: 18px 0 8px; padding-top: 10px;
     border-top: 1px dashed var(--line);
   }
   .step-label:first-child{ margin-top: 0; padding-top: 0; border-top: none; }
@@ -346,7 +348,7 @@
   .modal-actions .left, .modal-actions .right{ display:flex; gap:10px; }
 
   .wakelock-row{ margin-bottom: 20px; }
-  #btnWakeLock.active{ background: var(--paper); color: var(--ink); border-color: var(--accent); }
+  #btnWakeLock.active{ background: var(--primary); color: #fff; border-color: transparent; }
 
   footer{ max-width: 1000px; margin: 44px auto 0; padding: 0 24px; text-align:center; }
   footer button{ background:none; border:none; color: var(--ink-soft); font-size:12.5px; text-decoration:underline; cursor:pointer; }
@@ -359,11 +361,11 @@
     bottom: calc(20px + env(safe-area-inset-bottom));
     width: 46px; height: 46px;
     border-radius: 50%;
-    background: var(--paper);
-    color: var(--ink);
-    border: 1.5px solid var(--accent);
+    background: var(--primary);
+    color: #fff;
+    border: none;
     font-size: 20px;
-    box-shadow: 0 4px 14px rgba(35,51,73,0.3);
+    box-shadow: 0 4px 14px rgba(0,0,0,0.28);
     cursor: pointer;
     display: none;
     align-items: center;
@@ -376,7 +378,7 @@
 
   /* ---------- Home ---------- */
   .home-hero{ max-width: 1000px; margin: 0 auto; padding: 34px 24px 4px; }
-  .home-hero h2{ font-size: 30px; margin: 4px 0 16px; color: var(--ink); }
+  .home-hero h2{ font-size: 30px; margin: 4px 0 16px; color: var(--primary-dark); }
   .home-hero .chips{ margin-bottom: 18px; }
 
   /* ---------- Converter ---------- */
@@ -388,7 +390,7 @@
     flex: 1 1 170px; font-family:'Karla',sans-serif; font-size: 14px;
     padding: 9px 11px; border-radius: 7px; border: 1.5px solid var(--line); background: var(--paper); color: var(--ink);
   }
-  .conv-row strong{ font-family:'Fraunces',serif; font-size: 18px; color: var(--ink); min-width: 54px; }
+  .conv-row strong{ font-family:'Fraunces',serif; font-size: 18px; color: var(--primary-dark); min-width: 54px; }
   .conv-note{ color: var(--ink-soft); font-size: 13px; margin: -8px 0 20px; }
 
   @media (max-width: 560px){
@@ -415,7 +417,7 @@
 <header>
   <div class="brand">
     <div class="icon">
-      <svg viewBox="0 0 24 24" fill="none" style="stroke:var(--ink)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+      <svg viewBox="0 0 24 24" fill="none" stroke="#FBF7EC" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
         <path d="M8 2c0 3 1.5 4 1.5 7a3.5 3.5 0 0 1-7 0c0-3 1.5-4 1.5-7"/>
         <path d="M6 9v13"/>
         <path d="M15 2v8a3 3 0 0 0 3 3v9"/>
@@ -826,21 +828,29 @@ function extractJsonLdRecipe(html){
 function isMarkdownHeading(line){ return /^#{1,6}\s+\S/.test(line); }
 
 function stripBullet(s){
-  return s.replace(/^(?:[\*\-•]\s*)+(\[[ xX]\]\s*)?/, '').trim();
+  return s
+    .replace(/^(?:[\*\-•]\s*)+(\[[ xX]\]\s*)?/, '')
+    .replace(/^(?:[✅▪️▫️🔸🔹🟢🟠🔴🟡⚪️⚫️📍➡️👉✔️☑️🔻🔺💠♦️]\s*)+/u, '')
+    .trim();
 }
 
 // filters out lines that sneak into a section but aren't real recipe content:
-// markdown images, table rows (nutrition tables etc.), and common UI chrome text
+// markdown images, table rows (nutrition tables etc.), common UI chrome text,
+// and typical Instagram-caption noise (hashtag lines, "link in bio", follow prompts)
 const NOISE_PHRASES = [
   'nahlasit chybu', 'zobrazit vsechny hodnoty', 'hodnoty jsou pribl',
   'mensi porce', 'vetsi porce', 'pridat do', 'ulozit recept',
   'sdilet recept', 'vytisknout', 'komentare', 'napsat komentar',
+  'link in bio', 'link v bio', 'odkaz v bio', 'follow for more', 'follow me',
+  'sleduj pro vic', 'sledujte', 'uloz si', 'ulozit si', 'ulozte si', 'like if', 'dvojklik',
+  'tag a friend', 'oznac kamaradku', 'oznac kamarada', 'komentar napis',
 ];
 function isNoiseLine(line){
   const t = line.trim();
   if(!t) return true;
   if(/^!\[.*\]\(.*\)$/.test(t)) return true;   // markdown image
   if(/^\|/.test(t)) return true;                // markdown table row/divider
+  if(/^(#[\p{L}\d_]+[\s,]*)+$/u.test(t)) return true; // a line that's just hashtags
   const n = normalize(t);
   if(NOISE_PHRASES.some(p => n.includes(p))) return true;
   return false;
@@ -875,8 +885,8 @@ function extractTimeMinutes(lines, fullText){
 
 function heuristicParseText(text){
   const lines = text.split('\n').map(l => l.trim());
-  const ingKeywords = ['ingredience','suroviny','budete potrebovat','co budete potrebovat','potrebujeme','ingredients'];
-  const insKeywords = ['postup','priprava','priprava kroku','instrukce','navod','method','directions','instructions'];
+  const ingKeywords = ['ingredience','suroviny','budete potrebovat','co budete potrebovat','potrebujeme','ingredients','you will need','youll need','what you need','shopping list','zapotrebi'];
+  const insKeywords = ['postup','priprava','priprava kroku','instrukce','navod','method','directions','instructions','how to make','recipe','preparation','steps'];
   const stopKeywords = ['poznamka','nutricni','vyziva','hodnoceni','komentar','souvisejici','related','tisk','sdilet','stitky','tags','ulozeni','storage'];
 
   // reader services (e.g. jina.ai) return markdown with real "#" headings —
@@ -994,9 +1004,74 @@ function withUrlTagHint(result, url){
   return result;
 }
 
+// ---------- Instagram (post/reel caption) ----------
+function isInstagramUrl(url){
+  return /instagram\.com\/(p|reel|reels|tv)\//i.test(url);
+}
+
+function extractMetaContent(doc, selectors){
+  for(const sel of selectors){
+    const el = doc.querySelector(sel);
+    const content = el && el.getAttribute('content');
+    if(content && content.trim()) return content.trim();
+  }
+  return '';
+}
+
+function cleanInstagramCaption(raw){
+  if(!raw) return '';
+  // og:description usually looks like: '1,234 Likes, 56 Comments - user (@handle) on Instagram: "actual caption"'
+  let text = raw;
+  const m = text.match(/on Instagram:\s*"?([\s\S]*)$/i);
+  if(m) text = m[1];
+  text = text.replace(/"\s*$/, '');
+  text = text.replace(/&quot;/g, '"').replace(/&amp;/g, '&').replace(/&#39;/g, "'");
+  return text.trim();
+}
+
+async function fetchInstagramRecipe(url){
+  let html;
+  try{
+    html = await fetchHtml(url);
+  }catch(e){
+    html = await fetchViaReader(url);
+  }
+
+  let caption = '';
+  let title = '';
+  try{
+    const doc = new DOMParser().parseFromString(html, 'text/html');
+    caption = cleanInstagramCaption(extractMetaContent(doc, ['meta[property="og:description"]', 'meta[name="description"]']));
+    title = extractMetaContent(doc, ['meta[property="og:title"]']);
+  }catch(e){ /* html may already be plain reader text rather than markup */ }
+
+  if(!caption){
+    const m = html.match(/on Instagram:\s*"?([\s\S]{0,3000})/i);
+    if(m) caption = cleanInstagramCaption('on Instagram: ' + m[1]);
+  }
+
+  if(!caption) throw new Error('nepodařilo se najít popisek příspěvku (Instagram ho možná skryl)');
+
+  const parsed = heuristicParseText(caption);
+  if(parsed.ingredients.length || parsed.steps.length){
+    return withUrlTagHint({ ...parsed, name: parsed.name || title, source: 'instagram' }, url);
+  }
+  // couldn't confidently split the caption into ingredients/steps — hand it back for manual review
+  return withUrlTagHint({
+    name: title || '',
+    ingredients: [],
+    steps: [],
+    tagHint: '',
+    source: 'instagram-manual',
+    rawCaption: caption,
+  }, url);
+}
+
 async function fetchRecipeFromUrl(rawUrl){
   let url = rawUrl.trim();
   if(!/^https?:\/\//i.test(url)) url = 'https://' + url;
+
+  if(isInstagramUrl(url)) return fetchInstagramRecipe(url);
 
   let html = null;
   let htmlErr = null;
@@ -1299,7 +1374,7 @@ function renderQuickFilters(){
   QUICK_FILTERS.forEach(qf => {
     const chip = document.createElement('div');
     chip.className = 'chip' + (quickFilterState.has(qf.id) ? ' active' : '');
-    if(quickFilterState.has(qf.id)) chip.style.background = 'var(--accent)';
+    if(quickFilterState.has(qf.id)) chip.style.background = 'var(--primary)';
     chip.textContent = qf.label;
     chip.onclick = () => {
       if(quickFilterState.has(qf.id)) quickFilterState.delete(qf.id);
@@ -1664,13 +1739,13 @@ function renderEditForm(r){
     <div class="field">
       <label>URL odkaz na recept</label>
       <div class="url-row">
-        <input type="url" id="fUrl" value="${escapeHtml(draft.url)}" placeholder="https://…">
+        <input type="url" id="fUrl" value="${escapeHtml(draft.url)}" placeholder="https://… nebo odkaz na Instagram příspěvek/reel">
         <button type="button" class="btn btn-ghost" id="btnAutoFetch" style="white-space:nowrap;">Načíst automaticky</button>
       </div>
       <div class="url-status" id="urlStatus"></div>
-      <button type="button" class="paste-toggle" id="btnTogglePaste">nebo vlož zkopírovaný text stránky ručně</button>
+      <button type="button" class="paste-toggle" id="btnTogglePaste">📸 vložit z Instagramu (popisek) nebo zkopírovaný text stránky</button>
       <div class="paste-box" id="pasteBox">
-        <textarea id="fPasteText" placeholder="Vlož sem zkopírovaný text receptu ze stránky (název, suroviny, postup)…" style="min-height:110px; margin-bottom:8px;"></textarea>
+        <textarea id="fPasteText" placeholder="Vlož sem popisek příspěvku/reels z Instagramu, nebo zkopírovaný text receptu z libovolné stránky (název, suroviny, postup)…" style="min-height:110px; margin-bottom:8px;"></textarea>
         <button type="button" class="btn btn-ghost" id="btnParsePaste">Rozpoznat z textu</button>
       </div>
     </div>
@@ -1843,7 +1918,7 @@ function renderEditForm(r){
   document.getElementById('btnAutoFetch').onclick = async () => {
     const urlVal = document.getElementById('fUrl').value.trim();
     if(!urlVal){ setUrlStatus('Nejdřív vlož URL adresu receptu.', true); return; }
-    setUrlStatus('Načítám recept ze stránky…', false, true);
+    setUrlStatus(isInstagramUrl(urlVal) ? 'Načítám popisek příspěvku…' : 'Načítám recept ze stránky…', false, true);
     let data;
     try{
       data = await fetchRecipeFromUrl(urlVal);
@@ -1853,6 +1928,15 @@ function renderEditForm(r){
       document.getElementById('pasteBox').classList.add('open');
       return;
     }
+
+    if(data.source === 'instagram-manual'){
+      if(data.name) document.getElementById('fName').value = data.name;
+      document.getElementById('fPasteText').value = data.rawCaption || '';
+      document.getElementById('pasteBox').classList.add('open');
+      setUrlStatus('Popisek příspěvku se načetl, ale nešlo v něm bezpečně poznat suroviny od postupu. Zkontroluj vložený text níže a klikni na „Rozpoznat z textu“ (případně si ho tam předtím pouprav).', true);
+      return;
+    }
+
     let translationFailed = false;
     const sample = (data.name || '') + ' ' + (data.steps || []).join(' ') + ' ' + (data.ingredients || []).join(' ');
     if(isLikelyEnglish(sample)){
@@ -1865,7 +1949,7 @@ function renderEditForm(r){
       }
     }
     applyFetchedData(data);
-    let msg = data.source === 'structured' ? 'Načteno' : 'Částečně rozpoznáno';
+    let msg = data.source === 'structured' ? 'Načteno' : data.source === 'instagram' ? 'Načteno z popisku příspěvku' : 'Částečně rozpoznáno';
     if(data.translated) msg += ' a přeloženo z angličtiny';
     else if(translationFailed) msg += ' — překlad do češtiny se teď nezdařil, zkus tlačítko níže znovu';
     msg += '. Zkontroluj prosím údaje.';
