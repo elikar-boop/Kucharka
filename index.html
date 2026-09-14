@@ -844,11 +844,13 @@ const NOISE_PHRASES = [
   'link in bio', 'link v bio', 'odkaz v bio', 'follow for more', 'follow me',
   'sleduj pro vic', 'sledujte', 'uloz si', 'ulozit si', 'ulozte si', 'like if', 'dvojklik',
   'tag a friend', 'oznac kamaradku', 'oznac kamarada', 'komentar napis',
+  'audioverze', 'mam hotovo', 'zverejneno', 'jak na pripravu', 'tip:',
 ];
 function isNoiseLine(line){
   const t = line.trim();
   if(!t) return true;
   if(/^!\[.*\]\(.*\)$/.test(t)) return true;   // markdown image
+  if(/^\d*\s*!?\s*image\s*\d*$/i.test(t)) return true; // stray "84 !Image" placeholder text
   if(/^\|/.test(t)) return true;                // markdown table row/divider
   if(/^(#[\p{L}\d_]+[\s,]*)+$/u.test(t)) return true; // a line that's just hashtags
   const n = normalize(t);
@@ -925,20 +927,27 @@ function heuristicParseText(text){
     if(insIdx === -1 && ingIdx !== -1 && i > ingIdx && headingMatches(line, insKeywords)) insIdx = i;
   });
 
+  const isCheckboxLine = l => /^\s*[-*]\s*\[[ xX]\]/.test(l);
+
   let ingredients = [];
   if(ingIdx !== -1){
     const end = insIdx !== -1 ? insIdx : sectionEnd(ingIdx + 1);
-    ingredients = lines.slice(ingIdx + 1, end)
+    let ingLines = lines.slice(ingIdx + 1, end);
+    if(ingLines.some(isCheckboxLine)) ingLines = ingLines.filter(isCheckboxLine);
+    ingredients = ingLines
       .map(stripBullet)
       .filter(l => l && l.length < 140 && !isMarkdownHeading(l) && !isNoiseLine(l))
-      .map(collapseDuplicateAmount)
-      .map(reorderIngredientAmount);
+      .map(processIngredientLine);
   }
 
   let steps = [];
   if(insIdx !== -1){
     const end = sectionEnd(insIdx + 1);
-    steps = lines.slice(insIdx + 1, end)
+    let stepLines = lines.slice(insIdx + 1, end);
+    // some sites also print the whole method as one "listen/audio" paragraph
+    // alongside a proper checkbox checklist — when a checklist exists, trust only that
+    if(stepLines.some(isCheckboxLine)) stepLines = stepLines.filter(isCheckboxLine);
+    steps = stepLines
       .map(stripBullet)
       .filter(l => l && !isMarkdownHeading(l) && !isNoiseLine(l))
       .map(stripMarkdownFormatting)
@@ -1145,6 +1154,7 @@ function stripMarkdownFormatting(s){
     .replace(/\[([^\]]+)\]\([^)]*\)/g, '$1')       // [name](url) -> name
     .replace(/\*\*([^*]+)\*\*/g, '$1')              // **bold** -> bold
     .replace(/\*([^*]+)\*/g, '$1')                  // *italic* -> italic
+    .replace(/\*+/g, '')                            // any leftover stray/unpaired asterisks
     .replace(/([a-záčďéěíňóřšťúůýž])(\d)/gi, '$1 $2') // missing space, e.g. "brambory500" -> "brambory 500"
     .replace(/[ \t]{2,}/g, ' ')
     .trim();
@@ -1158,6 +1168,22 @@ function reorderIngredientAmount(s){
   const name = cleaned.slice(0, m.index).trim();
   if(!name || !amount) return cleaned;
   return `${amount} ${name}`;
+}
+
+// a short line ending in ":" with no measurement in it is a sub-heading
+// (e.g. "Těsto:", "Náplň (na plech):") rather than an actual ingredient/step
+function looksLikeSectionTitle(line){
+  const t = (line || '').trim();
+  if(!t.endsWith(':')) return false;
+  if(t.length > 60) return false;
+  if(/\d/.test(t)) return false;
+  return true;
+}
+
+function processIngredientLine(line){
+  const cleaned = stripMarkdownFormatting(line);
+  if(looksLikeSectionTitle(cleaned)) return '.' + cleaned.replace(/:\s*$/, '').trim();
+  return reorderIngredientAmount(collapseDuplicateAmount(cleaned));
 }
 
 const AMOUNT_PATTERN = '(\\d+\\s+\\d+\\/\\d+|\\d+\\/\\d+|\\d+(?:[.,]\\d+)?)';
@@ -1829,7 +1855,7 @@ function renderEditForm(r){
   function applyFetchedData(data){
     if(data.name) document.getElementById('fName').value = data.name;
     if(data.time) document.getElementById('fTime').value = data.time;
-    if(data.ingredients && data.ingredients.length) document.getElementById('fIngredients').value = data.ingredients.map(reorderIngredientAmount).map(convertLineUnits).join('\n');
+    if(data.ingredients && data.ingredients.length) document.getElementById('fIngredients').value = data.ingredients.map(processIngredientLine).map(convertLineUnits).join('\n');
     autoGrowTextarea(document.getElementById('fIngredients'));
     if(data.steps && data.steps.length){
       document.getElementById('fSteps').value = data.steps.map(stripMarkdownFormatting).map(convertLineUnits).join('\n');
@@ -1876,7 +1902,7 @@ function renderEditForm(r){
     const stepsEl = document.getElementById('fSteps');
     const beforeIng = ingEl.value;
     const beforeSteps = stepsEl.value;
-    ingEl.value = beforeIng.split('\n').map(reorderIngredientAmount).map(convertLineUnits).join('\n');
+    ingEl.value = beforeIng.split('\n').map(processIngredientLine).map(convertLineUnits).join('\n');
     autoGrowTextarea(ingEl);
     stepsEl.value = beforeSteps.split('\n').map(stripMarkdownFormatting).map(convertLineUnits).join('\n');
     autoGrowTextarea(stepsEl);
